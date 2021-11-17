@@ -9,6 +9,9 @@ class WindowGrid {
     this.grid = new Array(width / gridBlockSizeX);
     for (let i = 0; i < grid.length; i++) {
       this.grid[i] = new Array(height / gridBlockSizeY);
+      for (let j = 0; j < grid[i].length; j++) {
+        this.grid[i][j] = {};
+      }
     }
     this.gridWidth = this.grid.length;
     this.gridHeight = this.grid[0].length;
@@ -57,6 +60,16 @@ class WindowGrid {
     //TODO
   }
 
+  markGridBlock(gridX, gridY, window) {
+    var block = this.grid[gridX][gridY];
+    block[window.id] = window;
+  }
+
+  unmarkGridBlock(gridX, gridY, window) {
+    var block = this.grid[gridX][gridY];
+    delete block[window.id];
+  }
+
   markIntersectingGridBlocks(window) {
     //TODO
   }
@@ -81,10 +94,47 @@ class WindowGrid {
     }
   }
 
+  pickBestAdjacentElement(start, gridX, gridY) {
+    var block = this.grid[gridX][gridY];
+    return block[Object.keys(block)[0]];
+  }
+
   hopToElement(dir) {
-    //yadyadyadada hop in the right way
-    //TODO
     var dest;
+    switch (dir) {
+      case UP:
+        for (var y = selected.gridY; y >= 0; y--) {
+          if (this.grid[selected.gridX][y].length != 0) {
+            dest = this.pickBestAdjacentElement(selected, selected.gridX, y);
+            break;
+          }
+        }
+        return;
+      case DOWN:
+        for (var y = selected.gridY; y < this.gridHeight; y++) {
+          if (this.grid[selected.gridX][y].length != 0) {
+            dest = this.pickBestAdjacentElement(selected, selected.gridX, y);
+            break;
+          }
+        }
+        return;
+      case LEFT:
+        for (var x = selected.gridX; x >= 0; x--) {
+          if (this.grid[x][selected.gridY].length != 0) {
+            dest = this.pickBestAdjacentElement(selected, x, selected.gridY);
+            break;
+          }
+        }
+        return;
+      case RIGHT:
+        for (var x = selected.gridX; x < this.gridWidth; x++) {
+          if (this.grid[x][selected.gridY].length != 0) {
+            dest = this.pickBestAdjacentElement(selected, x, selected.gridY);
+            break;
+          }
+        }
+        return;
+    }
     this.selectWindow(dest);
   }
 
