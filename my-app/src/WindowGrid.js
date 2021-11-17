@@ -1,0 +1,1 @@
+function WindowGrid({ windowHeight, windowWidth }) {}
