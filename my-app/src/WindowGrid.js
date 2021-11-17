@@ -71,7 +71,11 @@ class WindowGrid {
   }
 
   markIntersectingGridBlocks(window) {
-    //TODO
+    for (var x = window.gridX; x < window.gridX + window.gridWidth; x++) {
+      for (var y = window.gridY; y < window.gridY + window.gridHeight; y++) {
+        this.markGridBlock(x, y, window);
+      }
+    }
   }
 
   addWindow() {
