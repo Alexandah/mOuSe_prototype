@@ -1,6 +1,6 @@
 /*
   This prototype will just focus on resizing and moving windows,
-  ignoring selector size/ child elements
+  ignoring selector size/child elements
 */
 
 class TPGridBlock {
@@ -147,8 +147,70 @@ class TPGrid {
     //You found nothing.
     return null;
   }
-  getClosestWindowRight(window) {}
-  getClosestWindowUp(window) {}
-  getClosestWindowDown(window) {}
+
+  getClosestWindowRight(window) {
+    var right = window.right();
+    //Search for any items directly left
+    for (var x = right.x + 1; x < this.gridWidth; x++) {
+      var block = this.grid[x][right.y];
+      if (this.hasIntersection(block)) return this.getIntersection(block);
+    }
+    //Since you didn't find any, begin to look for the nearest item
+    //in the vertical right direction too
+    for (var x = right.x + 1; x < this.gridWidth; x++) {
+      for (var y = left.y + 1; y < this.gridHeight; y++) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+      for (var y = left.y - 1; y >= 0; y--) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+    }
+    //You found nothing.
+    return null;
+  }
+
+  getClosestWindowUp(window) {
+    var up = window.up();
+    for (var y = up.y - 1; x >= 0; x--) {
+      var block = this.grid[up.x][y];
+      if (this.hasIntersection(block)) return this.getIntersection(block);
+    }
+    for (var y = up.y - 1; x >= 0; x--) {
+      for (var x = up.x + 1; x < this.gridWidth; x++) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+      for (var x = up.x - 1; x >= 0; x--) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+    }
+    //You found nothing.
+    return null;
+  }
+
+  getClosestWindowDown(window) {
+    var down = window.down();
+    for (var y = down.y + 1; x < this.gridHeight; x++) {
+      var block = this.grid[down.x][y];
+      if (this.hasIntersection(block)) return this.getIntersection(block);
+    }
+
+    for (var y = down.y + 1; x < this.gridHeight; x++) {
+      for (var x = down.x + 1; x < this.gridWidth; x++) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+      for (var x = down.x - 1; x >= 0; x--) {
+        var block = this.grid[x][y];
+        if (this.hasIntersection(block)) return this.getIntersection(block);
+      }
+    }
+    //You found nothing.
+    return null;
+  }
+
   moveToAdjacentWindow(dir) {}
 }
