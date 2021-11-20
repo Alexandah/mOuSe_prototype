@@ -1,7 +1,9 @@
-export const UP = "k";
-export const DOWN = "j";
-export const LEFT = "h";
-export const RIGHT = "l";
-export const CLICK = "spacebar";
-export const EXPAND_SELECTOR = "shift";
-export const SHRINK_SELECTOR = "ctrl";
+export const Keybindings = {
+  UP: "k",
+  DOWN: "j",
+  LEFT: "h",
+  RIGHT: "l",
+  CLICK: "spacebar",
+  EXPAND_SELECTOR: "shift",
+  SHRINK_SELECTOR: "ctrl",
+};
