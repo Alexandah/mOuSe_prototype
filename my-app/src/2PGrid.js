@@ -22,12 +22,10 @@ class TPGridBlock {
   }
 
   hasIntersection() {
-    // console.log("checking intersection");
     return Object.keys(this.intersects).length > 0;
   }
 
   getIntersection() {
-    // console.log("getting intersection");
     return this.intersects[Object.keys(this.intersects)[0]];
   }
 }
@@ -48,25 +46,26 @@ class TPGridRect {
   plus 1*direction 
   */
 
-  left() {
+  //todo: change local vars to reflect what the method actually does. low priority
+  top() {
     var atLeftEdge = this.x === 0;
     var oneLeft = atLeftEdge ? this.x : this.x - 1;
     return { x: oneLeft, y: this.y + Math.floor(this.height / 2) };
   }
 
-  right() {
+  bottom() {
     var atRightEdge = this.x === GRID_WIDTH - 1;
     var oneRight = atRightEdge ? this.x : this.x + this.width;
     return { x: oneRight, y: this.y + Math.floor(this.height / 2) };
   }
 
-  bottom() {
+  right() {
     var atBottomEdge = this.y === GRID_HEIGHT - 1;
     var oneBelow = atBottomEdge ? this.y : this.y + this.height;
     return { x: this.x + Math.floor(this.width / 2), y: oneBelow };
   }
 
-  top() {
+  left() {
     var atTopEdge = this.y === 0;
     var oneAbove = atTopEdge ? this.y : this.y - 1;
     return { x: this.x + Math.floor(this.width / 2), y: oneAbove };
@@ -119,6 +118,19 @@ class TPGrid {
     }
   }
 
+  printGridPos(x, y) {
+    for (var i = 0; i < this.gridWidth; i++) {
+      var row = "";
+      for (var j = 0; j < this.gridHeight; j++) {
+        var item = "_";
+        if (this.grid[i][j].hasIntersection()) item = "X";
+        if (i === x && j === y) item = "~";
+        row += item + ",";
+      }
+      console.log(row);
+    }
+  }
+
   markIntersectingBlocks(window) {
     for (var i = window.x; i < window.x + window.width; i++) {
       for (var j = window.y; j < window.y + window.height; j++) {
@@ -152,6 +164,7 @@ class TPGrid {
     this.markIntersectingBlocks(window);
     this.windows[window.id] = window;
     if (this.selected == null) this.selectInitialWindow();
+    return window;
   }
 
   closeWindow(window) {
@@ -162,82 +175,107 @@ class TPGrid {
   }
 
   moveWindow(window, newTopLeft) {
-    unmarkIntersectingBlocks(window);
+    this.unmarkIntersectingBlocks(window);
     window.setPos(newTopLeft);
-    markIntersectingBlocks(window);
+    this.markIntersectingBlocks(window);
   }
 
   resizeWindow(window, newWidth, newHeight) {
-    unmarkIntersectingBlocks(window);
+    this.unmarkIntersectingBlocks(window);
     window.resize(newWidth, newHeight);
     //todo: move window to keep in screen as appropriate
-    markIntersectingBlocks(window);
+    this.markIntersectingBlocks(window);
+  }
+
+  //Scan along an expanding radius, on a line parallel to the given point on the vertical axis
+  perpendicularScanVertical(x, y) {
+    var r = 1;
+    while (true) {
+      var canContinueUp = x + r < this.gridWidth;
+      var canContinueDown = x - r >= 0;
+      var canContinue = canContinueUp || canContinueDown;
+      if (!canContinue) return null;
+
+      if (canContinueUp) {
+        var block = this.grid[x + r][y];
+        if (block.hasIntersection()) {
+          return block.getIntersection();
+        }
+      }
+
+      if (canContinueDown) {
+        var block = this.grid[x - r][y];
+        if (block.hasIntersection()) {
+          return block.getIntersection();
+        }
+      }
+      r++;
+    }
+  }
+
+  //Scan along an expanding radius, on a line parallel to the given point on the horizontal axis
+  perpendicularScanHorizontal(x, y) {
+    var r = 1;
+    while (true) {
+      var canContinueRight = y + r < this.gridHeight;
+      var canContinueLeft = y - r >= 0;
+      var canContinue = canContinueRight || canContinueLeft;
+      if (!canContinue) return null;
+
+      if (canContinueRight) {
+        var block = this.grid[x][y + r];
+        if (block.hasIntersection()) {
+          return block.getIntersection();
+        }
+      }
+
+      if (canContinueLeft) {
+        var block = this.grid[x][y - r];
+        if (block.hasIntersection()) {
+          return block.getIntersection();
+        }
+      }
+      r++;
+    }
   }
 
   getClosestWindowLeft(window) {
     var left = window.left();
-    console.log("left ", left);
-    //Search for any items directly left
-    for (var x = left.x; x >= 0; x--) {
-      var block = this.grid[x][left.y];
+    for (var y = left.y; y >= 0; y--) {
+      var block = this.grid[left.x][y];
       if (block.hasIntersection()) return block.getIntersection();
     }
-    //Since you didn't find any, begin to look for the nearest item
-    //in the vertical left direction too
-    for (var x = left.x; x >= 0; x--) {
-      for (var y = left.y + 1; y < this.gridHeight; y++) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
-      for (var y = left.y - 1; y >= 0; y--) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
+    for (var y = left.y; y >= 0; y--) {
+      var found = this.perpendicularScanVertical(left.x, y);
+      if (found != null) return found;
     }
     //You found nothing.
-    console.log("found nothing");
     return window;
   }
 
   getClosestWindowRight(window) {
     var right = window.right();
-    console.log("right ", right);
-    for (var x = right.x; x < this.gridWidth; x++) {
-      var block = this.grid[x][right.y];
+    for (var y = right.y; y < this.gridHeight; y++) {
+      var block = this.grid[right.x][y];
       if (block.hasIntersection()) return block.getIntersection();
     }
-    //Since you didn't find any, begin to look for the nearest item
-    //in the vertical right direction too
-    for (var x = right.x; x < this.gridWidth; x++) {
-      for (var y = right.y + 1; y < this.gridHeight; y++) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
-      for (var y = right.y - 1; y >= 0; y--) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
+    for (var y = right.y; y < this.gridHeight; y++) {
+      var found = this.perpendicularScanVertical(right.x, y);
+      if (found != null) return found;
     }
     //You found nothing.
-    console.log("found nothing");
     return window;
   }
 
   getClosestWindowUp(window) {
     var up = window.top();
-    for (var y = up.y; y >= 0; y--) {
-      var block = this.grid[up.x][y];
+    for (var x = up.x; x >= 0; x--) {
+      var block = this.grid[x][up.y];
       if (block.hasIntersection()) return block.getIntersection();
     }
-    for (var y = up.y; y >= 0; y--) {
-      for (var x = up.x + 1; x < this.gridWidth; x++) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
-      for (var x = up.x - 1; x >= 0; x--) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
+    for (var x = up.x; x >= 0; x--) {
+      var found = this.perpendicularScanHorizontal(x, up.y);
+      if (found != null) return found;
     }
     //You found nothing.
     return window;
@@ -245,20 +283,14 @@ class TPGrid {
 
   getClosestWindowDown(window) {
     var down = window.bottom();
-    for (var y = down.y; y < this.gridHeight; y++) {
-      var block = this.grid[down.x][y];
+    for (var x = down.x; x < this.gridWidth; x++) {
+      var block = this.grid[x][down.y];
       if (block.hasIntersection()) return block.getIntersection();
     }
 
-    for (var y = down.y; y < this.gridHeight; y++) {
-      for (var x = down.x + 1; x < this.gridWidth; x++) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
-      for (var x = down.x - 1; x >= 0; x--) {
-        var block = this.grid[x][y];
-        if (block.hasIntersection()) return block.getIntersection();
-      }
+    for (var x = down.x; x < this.gridWidth; x++) {
+      var found = this.perpendicularScanHorizontal(x, down.y);
+      if (found != null) return found;
     }
     //You found nothing.
     return window;
@@ -280,28 +312,74 @@ class TPGrid {
         break;
     }
   }
+
+  //Moves the window by the amount of its width/height in the given direction
+  shiftWindow(window, dir) {
+    var newTopLeft = window.topleft;
+    switch (dir) {
+      case Keybindings.UP:
+        var newX = newTopLeft[0] - window.width;
+        if (newX >= 0) newTopLeft[0] = newX;
+        break;
+      case Keybindings.DOWN:
+        var newX = newTopLeft[0] + window.width;
+        if (newX < this.gridWidth) newTopLeft[0] = newX;
+        break;
+      case Keybindings.LEFT:
+        var newY = newTopLeft[1] - window.height;
+        if (newY >= 0) newTopLeft[1] = newY;
+        break;
+      case Keybindings.RIGHT:
+        var newY = newTopLeft[1] + window.height;
+        if (newY < this.gridHeight) newTopLeft[1] = newY;
+        break;
+    }
+    this.moveWindow(window, newTopLeft);
+  }
 }
 
+var grid = new TPGrid(100, 100, 10);
+var window = grid.openWindow(0, 0);
+console.log("grid windows: ", grid.windows);
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.DOWN);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.RIGHT);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.RIGHT);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.UP);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.UP);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+grid.shiftWindow(window, Keybindings.LEFT);
+console.log("~~~~~~~~~~~~~~~~~~~~");
+grid.printGrid();
+console.log("grid windows: ", grid.windows);
+
+/* Testing selector
 var grid = new TPGrid(100, 100, 10);
 console.log(grid.numBlocks);
 console.log(grid.gridHeight);
 console.log(grid.gridWidth);
 grid.openWindow(0, 0);
+grid.openWindow(7, 0);
 grid.openWindow(5, 5);
-grid.printGrid();
+// grid.printGrid();
 // console.log("windows: ");
 // console.log(grid.windows);
-console.log("selected: ");
-console.log(grid.selected.id);
+console.log("selected: ", grid.selected.id);
 grid.moveToAdjacentWindow(Keybindings.DOWN);
-console.log("selected: ");
-console.log(grid.selected.id);
+console.log("selected: ", grid.selected.id);
 grid.moveToAdjacentWindow(Keybindings.UP);
-console.log("selected: ");
-console.log(grid.selected.id);
+console.log("selected: ", grid.selected.id);
 grid.moveToAdjacentWindow(Keybindings.RIGHT);
-console.log("selected: ");
-console.log(grid.selected.id);
+console.log("selected: ", grid.selected.id);
 grid.moveToAdjacentWindow(Keybindings.LEFT);
-console.log("selected: ");
-console.log(grid.selected.id);
+console.log("selected: ", grid.selected.id);
+*/
