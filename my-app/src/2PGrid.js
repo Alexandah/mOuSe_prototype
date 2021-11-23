@@ -1,4 +1,5 @@
 // import Keybindings from "./Keybindings";
+
 //temp for testing since imports are screwy without npm start
 const Keybindings = {
   UP: "k",
@@ -13,6 +14,7 @@ const Keybindings = {
   ignoring selector size/child elements
 */
 
+//this is a hack because TPGridRect isn't a child class of TPGrid
 const GRID_WIDTH = 10;
 const GRID_HEIGHT = 10;
 
@@ -338,48 +340,79 @@ class TPGrid {
   }
 }
 
-var grid = new TPGrid(100, 100, 10);
-var window = grid.openWindow(0, 0);
-console.log("grid windows: ", grid.windows);
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.DOWN);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.RIGHT);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.RIGHT);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.UP);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.UP);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-grid.shiftWindow(window, Keybindings.LEFT);
-console.log("~~~~~~~~~~~~~~~~~~~~");
-grid.printGrid();
-console.log("grid windows: ", grid.windows);
+/*
+ * Testing Area
+ */
 
-/* Testing selector
-var grid = new TPGrid(100, 100, 10);
-console.log(grid.numBlocks);
-console.log(grid.gridHeight);
-console.log(grid.gridWidth);
-grid.openWindow(0, 0);
-grid.openWindow(7, 0);
-grid.openWindow(5, 5);
-// grid.printGrid();
-// console.log("windows: ");
-// console.log(grid.windows);
-console.log("selected: ", grid.selected.id);
-grid.moveToAdjacentWindow(Keybindings.DOWN);
-console.log("selected: ", grid.selected.id);
-grid.moveToAdjacentWindow(Keybindings.UP);
-console.log("selected: ", grid.selected.id);
-grid.moveToAdjacentWindow(Keybindings.RIGHT);
-console.log("selected: ", grid.selected.id);
-grid.moveToAdjacentWindow(Keybindings.LEFT);
-console.log("selected: ", grid.selected.id);
-*/
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message || "Assertion failed");
+  }
+}
+
+const TESTS = [
+  {
+    name: "Window Selection Hopper 1",
+    func: function () {
+      var grid = new TPGrid(100, 100, 10);
+      grid.openWindow(0, 0);
+      grid.openWindow(7, 0);
+      grid.openWindow(5, 5);
+      assert(grid.selected.id == 0);
+      grid.moveToAdjacentWindow(Keybindings.DOWN);
+      assert(grid.selected.id == 1);
+      grid.moveToAdjacentWindow(Keybindings.UP);
+      assert(grid.selected.id == 0);
+      grid.moveToAdjacentWindow(Keybindings.RIGHT);
+      assert(grid.selected.id == 2);
+      grid.moveToAdjacentWindow(Keybindings.LEFT);
+      assert(grid.selected.id == 1);
+    },
+  },
+  {
+    name: "Window Shifter 1",
+    func: function () {
+      var grid = new TPGrid(100, 100, 10);
+      var window = grid.openWindow(0, 0);
+      console.log("grid windows: ", grid.windows);
+      grid.printGrid();
+      var oldPos;
+      grid.shiftWindow(window, Keybindings.DOWN);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      grid.shiftWindow(window, Keybindings.RIGHT);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      grid.shiftWindow(window, Keybindings.RIGHT);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      grid.shiftWindow(window, Keybindings.UP);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      grid.shiftWindow(window, Keybindings.UP);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      grid.shiftWindow(window, Keybindings.LEFT);
+      console.log("~~~~~~~~~~~~~~~~~~~~");
+      grid.printGrid();
+      console.log("grid windows: ", grid.windows);
+      assert(false);
+    },
+  },
+];
+
+function tester(testName, testFunc) {
+  console.log("Running test: " + testName);
+  assert(testFunc(), "Test failed: " + testName);
+}
+
+TESTS.forEach((test) =>
+  tester(test.name, function () {
+    try {
+      test.func();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  })
+);
