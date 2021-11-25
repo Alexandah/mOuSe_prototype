@@ -165,7 +165,7 @@ class TPGrid {
     );
     this.markIntersectingBlocks(window);
     this.windows[window.id] = window;
-    if (this.selected == null) this.selectInitialWindow();
+    this.selected = window;
     return window;
   }
 
@@ -183,9 +183,25 @@ class TPGrid {
   }
 
   resizeWindow(window, newWidth, newHeight) {
+    if (
+      !(
+        newWidth < this.gridWidth &&
+        this.DEFAULT_WINDOW_SIZE_X <= newWidth &&
+        newHeight < this.gridHeight &&
+        this.DEFAULT_WINDOW_SIZE_Y <= newHeight
+      )
+    )
+      return;
     this.unmarkIntersectingBlocks(window);
     window.resize(newWidth, newHeight);
-    //todo: move window to keep in screen as appropriate
+    if (window.x + window.width >= this.gridWidth) {
+      var amountExceededX = window.x + window.width - this.gridWidth;
+      moveWindow(window, [amountExceededX, window.y]);
+    }
+    if (window.y + window.height >= this.gridHeight) {
+      var amountExceededY = window.y + window.height - this.gridHeight;
+      moveWindow(window, [window.x, amountExceededY]);
+    }
     this.markIntersectingBlocks(window);
   }
 
