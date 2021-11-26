@@ -14,6 +14,8 @@ const Keybindings = {
   ignoring selector size/child elements
 */
 
+export { TPGridRect, TPGrid };
+
 //this is a hack because TPGridRect isn't a child class of TPGrid
 const GRID_WIDTH = 10;
 const GRID_HEIGHT = 10;
@@ -142,9 +144,20 @@ class TPGrid {
     }
   }
 
+  numBlocksMarked() {
+    var numMarked = 0;
+    for (var i = 0; i < this.gridWidth; i++) {
+      for (var j = 0; j < this.gridHeight; j++) {
+        var block = this.grid[i][j];
+        if (block.hasIntersection()) numMarked++;
+      }
+    }
+    return numMarked;
+  }
+
   unmarkIntersectingBlocks(window) {
     for (var i = window.x; i < window.x + window.width; i++) {
-      for (var j = window.y; j < window.x + window.height; j++) {
+      for (var j = window.y; j < window.y + window.height; j++) {
         var block = this.grid[i][j];
         delete block.intersects[window.id];
       }
@@ -183,29 +196,33 @@ class TPGrid {
   }
 
   resizeWindow(window, newWidth, newHeight) {
-    if (
-      !(
-        newWidth < this.gridWidth &&
-        this.DEFAULT_WINDOW_SIZE_X <= newWidth &&
-        newHeight < this.gridHeight &&
-        this.DEFAULT_WINDOW_SIZE_Y <= newHeight
-      )
-    )
-      return;
+    if (newWidth >= this.gridWidth) newWidth = this.gridWidth;
+    else if (this.DEFAULT_WINDOW_SIZE_X > newWidth)
+      newWidth = this.DEFAULT_WINDOW_SIZE_X;
+    if (newHeight >= this.gridHeight) newHeight = this.gridHeight;
+    else if (this.DEFAULT_WINDOW_SIZE_Y > newHeight)
+      newHeight = this.DEFAULT_WINDOW_SIZE_Y;
+
     this.unmarkIntersectingBlocks(window);
     window.resize(newWidth, newHeight);
-    if (window.x + window.width >= this.gridWidth) {
-      var amountExceededX = window.x + window.width - this.gridWidth;
-      moveWindow(window, [amountExceededX, window.y]);
+    var newTopLeft = [window.x, window.y];
+    if (window.x + window.width - 1 >= this.gridWidth) {
+      // var amountExceededX = window.x + window.width - 1 - this.gridWidth;
+      // newTopLeft[0] = amountExceededX;
+      //easy solution
+      newTopLeft[0] = 0;
     }
-    if (window.y + window.height >= this.gridHeight) {
-      var amountExceededY = window.y + window.height - this.gridHeight;
-      moveWindow(window, [window.x, amountExceededY]);
+    if (window.y + window.height - 1 >= this.gridHeight) {
+      // var amountExceededY = window.y + window.height - 1 - this.gridHeight;
+      // newTopLeft[1] = amountExceededY;
+      //easy solution
+      newTopLeft[1] = 0;
     }
+    window.setPos(newTopLeft);
     this.markIntersectingBlocks(window);
   }
 
-  //Scan along an expanding radius, on a line parallel to the given point on the vertical axis
+  //Scan along an expanding radius, on a line perpendicular to the given point on the vertical axis
   perpendicularScanVertical(x, y) {
     var r = 1;
     while (true) {
@@ -231,7 +248,7 @@ class TPGrid {
     }
   }
 
-  //Scan along an expanding radius, on a line parallel to the given point on the horizontal axis
+  //Scan along an expanding radius, on a line perpendicular to the given point on the horizontal axis
   perpendicularScanHorizontal(x, y) {
     var r = 1;
     while (true) {
@@ -305,7 +322,6 @@ class TPGrid {
       var block = this.grid[x][down.y];
       if (block.hasIntersection()) return block.getIntersection();
     }
-
     for (var x = down.x; x < this.gridWidth; x++) {
       var found = this.perpendicularScanHorizontal(x, down.y);
       if (found != null) return found;
@@ -333,7 +349,7 @@ class TPGrid {
 
   //Moves the window by the amount of its width/height in the given direction
   shiftWindow(window, dir) {
-    var newTopLeft = window.topleft;
+    var newTopLeft = [window.x, window.y];
     switch (dir) {
       case Keybindings.UP:
         var newX = newTopLeft[0] - window.width;
@@ -374,6 +390,8 @@ const TESTS = [
       grid.openWindow(0, 0);
       grid.openWindow(7, 0);
       grid.openWindow(5, 5);
+      assert(grid.selected.id == 2);
+      grid.moveToAdjacentWindow(Keybindings.UP);
       assert(grid.selected.id == 0);
       grid.moveToAdjacentWindow(Keybindings.DOWN);
       assert(grid.selected.id == 1);
@@ -390,29 +408,54 @@ const TESTS = [
     func: function () {
       var grid = new TPGrid(100, 100, 10);
       var window = grid.openWindow(0, 0);
-      console.log("grid windows: ", grid.windows);
-      grid.printGrid();
-      var oldPos;
+      var initNumBlocksMarked = grid.numBlocksMarked();
       grid.shiftWindow(window, Keybindings.DOWN);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 2 && window.y == 0);
       grid.shiftWindow(window, Keybindings.RIGHT);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 2 && window.y == 2);
       grid.shiftWindow(window, Keybindings.RIGHT);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 2 && window.y == 4);
       grid.shiftWindow(window, Keybindings.UP);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 0 && window.y == 4);
       grid.shiftWindow(window, Keybindings.UP);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 0 && window.y == 4);
       grid.shiftWindow(window, Keybindings.LEFT);
-      console.log("~~~~~~~~~~~~~~~~~~~~");
-      grid.printGrid();
-      console.log("grid windows: ", grid.windows);
-      assert(false);
+      assert(grid.numBlocksMarked() == initNumBlocksMarked);
+      assert(window.x == 0 && window.y == 2);
+    },
+  },
+  {
+    name: "Window Resizer 1",
+    func: function () {
+      var grid = new TPGrid(100, 100, 10);
+      var window = grid.openWindow(4, 4);
+
+      grid.resizeWindow(window, window.width * 2, window.height * 2);
+      assert(window.width == 4 && window.height == 4);
+      grid.moveWindow(window, [0, 0]);
+      assert(window.width == 4 && window.height == 4);
+      assert(window.x == 0 && window.y == 0);
+      grid.resizeWindow(window, window.width * 2, window.height * 2);
+      assert(window.width == 8 && window.height == 8);
+      grid.resizeWindow(window, grid.gridWidth, grid.gridHeight);
+      assert(window.width == 10 && window.height == 10);
+      grid.resizeWindow(window, window.width * 2, window.height * 2);
+      assert(window.width == 10 && window.height == 10);
+      grid.resizeWindow(window, window.width * 2, window.height * 2);
+      assert(window.width == 10 && window.height == 10);
+      grid.resizeWindow(window, window.width / 2, window.height / 2);
+      assert(window.width == 5 && window.height == 5);
+      grid.moveWindow(window, [5, 4]);
+      assert(window.width == 5 && window.height == 5);
+      assert(window.x == 5 && window.y == 4);
+      grid.resizeWindow(window, window.width * 2, window.height * 2);
+      assert(window.width == 10 && window.height == 10);
+      assert(window.x == 0 && window.y == 0);
     },
   },
 ];

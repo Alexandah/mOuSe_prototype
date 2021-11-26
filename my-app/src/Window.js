@@ -1,22 +1,25 @@
-import ScreenElement from "./ScreenElement";
+import React from "react";
+import { TPGridRect } from "./2PGrid";
 
-const DEFAULT_WIDTH = 300;
-const DEFAULT_HEIGHT = 500;
+const ORANGE_OUTLINE_COLOR = "#ffa500";
+const BLACK_OUTLINE_COLOR = "#000000";
 
 function Window(props) {
-  var width = props.width || DEFAULT_WIDTH;
-  var height = props.height || DEFAULT_HEIGHT;
+  const windowState = React.useState(props.windowState);
+  const outlineColor = props.isSelected
+    ? ORANGE_OUTLINE_COLOR
+    : BLACK_OUTLINE_COLOR;
 
   return (
-    <ScreenElement style={{ width: width, height: height }}>
-      <ScreenElement width={25} height={25} isSelected={false}>
-        <div style={{ color: "red" }}>x</div>
-      </ScreenElement>
-      <ScreenElement width={25} height={25} isSelected={false}>
-        <div style={{ color: "yellow" }}>x</div>
-      </ScreenElement>
+    <div
+      style={{
+        border: `1px solid ${outlineColor}`,
+        width: `${props.width}px`,
+        height: `${props.height}px`,
+      }}
+    >
       {props.children}
-    </ScreenElement>
+    </div>
   );
 }
 export default Window;
