@@ -36,13 +36,13 @@ class TPGridBlock {
 
 var nextId = 0;
 class TPGridRect {
-  constructor(topleft, width, height) {
+  constructor(topleft, gridWidth, gridHeight) {
     this.id = nextId++;
     this.x = Math.floor(topleft[0]);
     this.y = Math.floor(topleft[1]);
     this.topleft = [this.x, this.y];
-    this.width = Math.floor(width);
-    this.height = Math.floor(height);
+    this.width = Math.floor(gridWidth);
+    this.height = Math.floor(gridHeight);
   }
 
   /*
@@ -89,6 +89,7 @@ class TPGridRect {
 
 class TPGrid {
   constructor(widthPx, heightPx, blockSizeFactor) {
+    this.blockSizeFactor = blockSizeFactor;
     this.widthPx = widthPx;
     this.heightPx = heightPx;
     this.blockSizeX = widthPx / blockSizeFactor;
@@ -133,6 +134,10 @@ class TPGrid {
       }
       console.log(row);
     }
+  }
+
+  gridPosToPx(x, y) {
+    return { x: x * this.blockSizeFactor, y: y * this.blockSizeFactor };
   }
 
   markIntersectingBlocks(window) {
