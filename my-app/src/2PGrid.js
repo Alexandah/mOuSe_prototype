@@ -1,24 +1,20 @@
-// import Keybindings from "./Keybindings";
+import Keybindings from "./Keybindings";
 
 //temp for testing since imports are screwy without npm start
-const Keybindings = {
-  UP: "k",
-  DOWN: "j",
-  LEFT: "h",
-  RIGHT: "l",
-  CLICK: "spacebar",
-};
+// const Keybindings = {
+//   UP: "k",
+//   DOWN: "j",
+//   LEFT: "h",
+//   RIGHT: "l",
+//   CLICK: "spacebar",
+// };
+
+export { TPGridRect, TPGrid };
 
 /*
   This prototype will just focus on resizing and moving windows,
   ignoring selector size/child elements
 */
-
-export { TPGridRect, TPGrid };
-
-//this is a hack because TPGridRect isn't a child class of TPGrid
-const GRID_WIDTH = 10;
-const GRID_HEIGHT = 10;
 
 class TPGridBlock {
   constructor() {
@@ -36,13 +32,15 @@ class TPGridBlock {
 
 var nextId = 0;
 class TPGridRect {
-  constructor(topleft, gridWidth, gridHeight) {
+  constructor(topleft, rectWidth, rectHeight, gridWidth, gridHeight) {
     this.id = nextId++;
     this.x = Math.floor(topleft[0]);
     this.y = Math.floor(topleft[1]);
     this.topleft = [this.x, this.y];
-    this.width = Math.floor(gridWidth);
-    this.height = Math.floor(gridHeight);
+    this.width = Math.floor(rectWidth);
+    this.height = Math.floor(rectHeight);
+    this.gridWidth = gridWidth;
+    this.gridHeight = gridHeight;
   }
 
   /*
@@ -58,13 +56,13 @@ class TPGridRect {
   }
 
   bottom() {
-    var atRightEdge = this.x === GRID_WIDTH - 1;
+    var atRightEdge = this.x === this.gridWidth - 1;
     var oneRight = atRightEdge ? this.x : this.x + this.width;
     return { x: oneRight, y: this.y + Math.floor(this.height / 2) };
   }
 
   right() {
-    var atBottomEdge = this.y === GRID_HEIGHT - 1;
+    var atBottomEdge = this.y === this.gridHeight - 1;
     var oneBelow = atBottomEdge ? this.y : this.y + this.height;
     return { x: this.x + Math.floor(this.width / 2), y: oneBelow };
   }
@@ -179,7 +177,9 @@ class TPGrid {
     var window = new TPGridRect(
       [gridX, gridY],
       this.DEFAULT_WINDOW_SIZE_X,
-      this.DEFAULT_WINDOW_SIZE_Y
+      this.DEFAULT_WINDOW_SIZE_Y,
+      this.gridWidth,
+      this.gridHeight
     );
     this.markIntersectingBlocks(window);
     this.windows[window.id] = window;

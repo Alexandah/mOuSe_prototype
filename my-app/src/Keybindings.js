@@ -5,8 +5,8 @@ const Keybindings = {
   RIGHT: "l",
   LEFT_CLICK: "spacebar",
   RIGHT_CLICK: "enter",
-  MOD: "ctrlKey",
-  NEW_WINDOW: "t", //+ctrl
-  CLOSE_WINDOW: "q", //+ctrl
+  MOD: "altKey",
+  NEW_WINDOW: "t", //+mod
+  CLOSE_WINDOW: "q", //+mod
 };
 export default Keybindings;
