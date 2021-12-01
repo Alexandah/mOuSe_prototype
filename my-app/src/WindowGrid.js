@@ -89,9 +89,15 @@ function WindowGrid({ widthPx, heightPx, blockSizeFactor }) {
         break;
     }
   };
-  document.addEventListener("keydown", handleKeyboard);
 
+  React.useEffect(() => {
+    window.addEventListener("keydown", handleKeyboard);
+    return () => {
+      window.removeEventListener("keydown", handleKeyboard);
+    };
+  }, []);
   React.useEffect(() => {}, [grid]);
+
   return (
     <div
       onKeyPress={handleKeyboard}
