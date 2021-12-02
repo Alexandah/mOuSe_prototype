@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Keybindings from "./Keybindings";
+import useEventListener from "@use-it/event-listener";
 
 const BLACK_OUTLINE_COLOR = "#000000";
 const ORANGE_OUTLINE_COLOR = "#ffa500";
@@ -362,6 +363,69 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
     }
     moveWindow(window, newX, newY);
   };
+
+  const hasKeyDown = (e, keycode) => {
+    switch (keycode) {
+      case "altKey":
+        return e.altKey;
+      case "ctrlKey":
+        return e.ctrlKey;
+      case "metaKey":
+        return e.metaKey;
+      case "shiftKey":
+        return e.shiftKey;
+      case e.key:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const handleKeyboard = (e) => {
+    e.preventDefault();
+    var dir;
+    switch (e) {
+      case hasKeyDown(e, Keybindings.MOD):
+        switch (e) {
+          case hasKeyDown(e, Keybindings.NEW_WINDOW):
+            openWindow(0, 0);
+            break;
+          case hasKeyDown(e, Keybindings.UP):
+            shiftWindow(selected, Keybindings.UP);
+            break;
+          case hasKeyDown(e, Keybindings.DOWN):
+            shiftWindow(selected, Keybindings.DOWN);
+            break;
+          case hasKeyDown(e, Keybindings.RIGHT):
+            shiftWindow(selected, Keybindings.RIGHT);
+            break;
+          case hasKeyDown(e, Keybindings.LEFT):
+            shiftWindow(selected, Keybindings.LEFT);
+            break;
+          case hasKeyDown(e, Keybindings.CLOSE_WINDOW):
+            closeWindow(selected);
+            break;
+        }
+        break;
+      default:
+        switch (e) {
+          case hasKeyDown(e, Keybindings.UP):
+            moveToAdjacentWindow(Keybindings.UP);
+            break;
+          case hasKeyDown(e, Keybindings.DOWN):
+            moveToAdjacentWindow(Keybindings.DOWN);
+            break;
+          case hasKeyDown(e, Keybindings.RIGHT):
+            moveToAdjacentWindow(Keybindings.RIGHT);
+            break;
+          case hasKeyDown(e, Keybindings.LEFT):
+            moveToAdjacentWindow(Keybindings.LEFT);
+            break;
+        }
+        break;
+    }
+  };
+  useEventListener("keydown", handleKeyboard);
 
   return (
     <div
