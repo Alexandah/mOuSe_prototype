@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Keybindings from "./Keybindings";
 import useEventListener from "@use-it/event-listener";
 
@@ -79,6 +79,8 @@ function TPGridRect(props) {
     ? ORANGE_OUTLINE_COLOR
     : BLACK_OUTLINE_COLOR;
 
+  useEffect(() => {}, [props.widthPx, props.heightPx, props.xPx, props.yPx]);
+
   return (
     <div
       style={{
@@ -116,9 +118,12 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
   const [grid, setGrid] = useState(initGrid);
   const [windows, setWindows] = useState({});
   const [selected, setSelected] = useState(null);
+  const [modMode, setModMode] = useState(false);
+
+  useEffect(() => {}, grid, windows, selected);
 
   const gridPosToPx = (x, y) => {
-    return { x: x * blockSizeFactor, y: y * blockSizeFactor };
+    return { x: x * gridBlockSizeX, y: y * gridBlockSizeY };
   };
 
   const markIntersectingBlocks = (window) => {
@@ -181,10 +186,13 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
   };
 
   const moveWindow = (window, x, y) => {
+    console.log(window, x, y);
     unmarkIntersectingBlocks(window);
     window.setPos(x, y);
     windows[window.id] = window;
-    setWindows(windows);
+    var newWindows = { ...windows };
+    setWindows(newWindows);
+    console.log(windows);
     markIntersectingBlocks(window);
   };
 
@@ -435,6 +443,32 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
         height: pxHeight,
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          top: 1000,
+        }}
+      >
+        <button onClick={() => shiftWindow(selected, Keybindings.LEFT)}>
+          h
+        </button>
+        <button onClick={() => shiftWindow(selected, Keybindings.DOWN)}>
+          j
+        </button>
+        <button onClick={() => shiftWindow(selected, Keybindings.UP)}>k</button>
+        <button onClick={() => shiftWindow(selected, Keybindings.RIGHT)}>
+          l
+        </button>
+        <button
+          onClick={() => {
+            setModMode(!modMode);
+          }}
+        >
+          {" "}
+          mod{" "}
+        </button>
+        <button onClick={() => openWindow(0, 0)}>t</button>
+      </div>
       {Object.keys(windows).map((id) => {
         var window = windows[id];
         var isSelected = window === selected;
@@ -443,10 +477,10 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
         return (
           <TPGridRect
             isSelected={isSelected}
-            x={screenPos.x}
-            y={screenPos.y}
-            width={screenDim.x}
-            height={screenDim.y}
+            xPx={screenPos.x}
+            yPx={screenPos.y}
+            widthPx={screenDim.x}
+            heightPx={screenDim.y}
           >
             Wassup cunt?
           </TPGridRect>

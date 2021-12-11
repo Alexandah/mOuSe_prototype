@@ -5,7 +5,7 @@ import TPGrid from "./R2PGrid";
 function App() {
   return (
     <div>
-      <TPGrid pxWidth={2048} pxHeight={1024} blockSizeFactor={16}></TPGrid>
+      <TPGrid pxWidth={2048} pxHeight={1024} blockSizeFactor={4}></TPGrid>
     </div>
   );
 }
