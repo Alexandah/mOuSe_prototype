@@ -120,7 +120,7 @@ function TPGrid({ pxWidth, pxHeight, blockSizeFactor }) {
   const [selected, setSelected] = useState(null);
   const [modMode, setModMode] = useState(false);
 
-  useEffect(() => {}, grid, windows, selected);
+  useEffect(() => {}, [grid, windows, selected]);
 
   const gridPosToPx = (x, y) => {
     return { x: x * gridBlockSizeX, y: y * gridBlockSizeY };
