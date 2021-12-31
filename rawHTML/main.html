@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>dankest webpage</title>
+    <style>
+      .window {
+        border: 1px solid black;
+        position: absolute;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      //DOM Helpers
+      function get(id) {
+        return document.getElementById(id);
+      }
+
+      function getClass(className) {
+        return document.getElementsByClassName(className);
+      }
+
+      function getTags(tagName) {
+        return document.getElementsByTagName(tagName);
+      }
+
+      function getTag(tagName) {
+        return getTags(tagName)[0];
+      }
+
+      function makeDiv(parent) {
+        var div = document.createElement("div");
+        parent.appendChild(div);
+        return div;
+      }
+
+      function makeP(text, parent) {
+        var p = document.createElement("p");
+        p.appendChild(document.createTextNode(text));
+        parent.appendChild(p);
+        return p;
+      }
+
+      //Entities
+      class DOMObject {
+        constructor() {
+          this.element = null;
+          this.render = function () {};
+          return new Proxy(this, {
+            set: (target, key, value) => {
+              target[key] = value;
+              switch (key) {
+                case "element":
+                  break;
+                default:
+                  this.render();
+              }
+              return true;
+            },
+          });
+        }
+      }
+
+      /*DOMObject child schema:
+      Class Thing extends DOMObject{
+        constructor(a,b,c){
+          super();
+          this.a = a;
+          this.b = b;
+          this.c = c;
+          this.element = make...(...)
+          this.render = function () {
+            this.element.style... = ...
+            ...
+          }
+          this.render();
+        }
+      }
+      */
+
+      class Window extends DOMObject {
+        constructor(x, y, width, height) {
+          super();
+          this.x = x;
+          this.y = y;
+          this.width = width;
+          this.height = height;
+          this.element = makeDiv(document.body);
+          this.element.setAttribute("class", "window");
+          this.element.setAttribute("id", "test");
+          this.render = function () {
+            this.element.style.left = this.x + "px";
+            this.element.style.top = this.y + "px";
+            this.element.style.width = this.width + "px";
+            this.element.style.height = this.height + "px";
+          };
+          this.render();
+        }
+      }
+
+      //Main
+      x = new Window(0, 0, 100, 100);
+      x.x = 1000;
+      x.y = 500;
+    </script>
+  </body>
+</html>
