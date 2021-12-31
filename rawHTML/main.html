@@ -11,7 +11,32 @@
   </head>
 
   <body>
+    <p>Hello! Here are the controls:</p>
+    <ul>
+      <li>j ~ down</li>
+      <li>k ~ up</li>
+      <li>h ~ left</li>
+      <li>l ~ right</li>
+      <li>t ~ new window</li>
+      <li>Enter ~ right click</li>
+      <li>Spacebar ~ left click</li>
+    </ul>
+
     <script>
+      //Constants
+      const ORANGE_OUTLINE_COLOR = "#ffa500";
+      const BLACK_OUTLINE_COLOR = "#000000";
+      const Keybindings = {
+        UP: "k",
+        DOWN: "j",
+        LEFT: "h",
+        RIGHT: "l",
+        LEFT_CLICK: " ",
+        RIGHT_CLICK: "Enter",
+        NEW_WINDOW: "t",
+        CLOSE_WINDOW: "q",
+      };
+
       //DOM Helpers
       function get(id) {
         return document.getElementById(id);
@@ -88,38 +113,49 @@
           this.y = y;
           this.width = width;
           this.height = height;
+          this.outlineColor = BLACK_OUTLINE_COLOR;
           this.element = makeDiv(document.body);
           this.element.setAttribute("class", "window");
-          this.element.setAttribute("id", "test");
           this.render = function () {
             this.element.style.left = this.x + "px";
             this.element.style.top = this.y + "px";
             this.element.style.width = this.width + "px";
             this.element.style.height = this.height + "px";
+            this.element.style.border = "1px solid " + this.outlineColor;
           };
           this.render();
         }
       }
 
       //Main
-      var w = new Window(0, 0, 100, 100);
-      w.x = 500;
-      w.y = 500;
+      var selected = null;
 
       document.addEventListener("keydown", function (event) {
         console.log(event);
         switch (event.key) {
-          case "j":
-            w.y += 10;
+          case Keybindings.DOWN:
+            selected.y += 50;
             break;
-          case "k":
-            w.y -= 10;
+          case Keybindings.UP:
+            selected.y -= 50;
             break;
-          case "h":
-            w.x -= 10;
+          case Keybindings.LEFT:
+            selected.x -= 50;
             break;
-          case "l":
-            w.x += 10;
+          case Keybindings.RIGHT:
+            selected.x += 50;
+            break;
+          case Keybindings.NEW_WINDOW:
+            var w = new Window(0, 0, 100, 100);
+            w.x = 500;
+            w.y = 500;
+            selected = w;
+            break;
+          case Keybindings.RIGHT_CLICK:
+            selected.outlineColor = ORANGE_OUTLINE_COLOR;
+            break;
+          case Keybindings.LEFT_CLICK:
+            selected.outlineColor = BLACK_OUTLINE_COLOR;
             break;
         }
       });
