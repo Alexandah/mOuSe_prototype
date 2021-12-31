@@ -44,7 +44,7 @@
 
       //Entities
       class DOMObject {
-        constructor() {
+        constructor(varsIgnoringRender = []) {
           this.element = null;
           this.render = function () {};
           return new Proxy(this, {
@@ -54,6 +54,8 @@
                 case "element":
                   break;
                 default:
+                  let skipRender = varsIgnoringRender.indexOf(key) != -1;
+                  if (skipRender) break;
                   this.render();
               }
               return true;
@@ -101,7 +103,7 @@
 
       //Main
       x = new Window(0, 0, 100, 100);
-      x.x = 1000;
+      x.x = 500;
       x.y = 500;
     </script>
   </body>
