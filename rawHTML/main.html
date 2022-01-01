@@ -18,6 +18,7 @@
       <li>h ~ left</li>
       <li>l ~ right</li>
       <li>t ~ new window</li>
+      <li>q ~ close window</li>
       <li>Enter ~ right click</li>
       <li>Spacebar ~ left click</li>
     </ul>
@@ -54,13 +55,13 @@
         return getTags(tagName)[0];
       }
 
-      function makeDiv(parent) {
+      function makeDiv(parent = document.body) {
         var div = document.createElement("div");
         parent.appendChild(div);
         return div;
       }
 
-      function makeP(text, parent) {
+      function makeP(text, parent = document.body) {
         var p = document.createElement("p");
         p.appendChild(document.createTextNode(text));
         parent.appendChild(p);
@@ -72,6 +73,12 @@
         constructor(varsIgnoringRender = []) {
           this.element = null;
           this.render = function () {};
+          this.destroy = function () {
+            this.element.parentElement.removeChild(this.element);
+            Object.keys(this).forEach((k) => {
+              delete this[k];
+            });
+          };
           return new Proxy(this, {
             set: (target, key, value) => {
               target[key] = value;
@@ -114,7 +121,7 @@
           this.width = width;
           this.height = height;
           this.outlineColor = BLACK_OUTLINE_COLOR;
-          this.element = makeDiv(document.body);
+          this.element = makeDiv();
           this.element.setAttribute("class", "window");
           this.render = function () {
             this.element.style.left = this.x + "px";
@@ -156,6 +163,10 @@
             break;
           case Keybindings.LEFT_CLICK:
             selected.outlineColor = BLACK_OUTLINE_COLOR;
+            break;
+          case Keybindings.CLOSE_WINDOW:
+            selected.destroy();
+            selected = null;
             break;
         }
       });
