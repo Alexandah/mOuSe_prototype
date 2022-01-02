@@ -16,7 +16,7 @@ export class DOMObject {
           case "element":
             break;
           default:
-            let skipRender = varsIgnoringRender.indexOf(key) == -1;
+            let skipRender = varsIgnoringRender.indexOf(key) != -1;
             if (skipRender) break;
             this.render();
         }
