@@ -26,20 +26,6 @@
     <script type="module">
       import "./AlxndrDOM.js";
 
-      //Constants
-      const ORANGE_OUTLINE_COLOR = "#ffa500";
-      const BLACK_OUTLINE_COLOR = "#000000";
-      const Keybindings = {
-        UP: "k",
-        DOWN: "j",
-        LEFT: "h",
-        RIGHT: "l",
-        LEFT_CLICK: " ",
-        RIGHT_CLICK: "Enter",
-        NEW_WINDOW: "t",
-        CLOSE_WINDOW: "q",
-      };
-
       //DOM Helpers
       function get(id) {
         return document.getElementById(id);
@@ -71,6 +57,56 @@
       }
 
       //Entities
+      class Word {
+        constructor(tokens, semantics, orderMatters = false) {
+          self.tokens = tokens;
+          self.semantics = semantics;
+          self.orderMatters = orderMatters;
+        }
+
+        is(tokenSequence) {
+          if (!orderMatters) {
+            tokenSequence.forEach((t) => {
+              let isInWord = self.tokens.indexOf(t) != -1;
+              if (!isInWord) return false;
+            });
+          } else {
+            if (tokenSequence.length != self.tokens.length) return false;
+            tokenSequence.forEach((t, i) => {
+              let isInPlace = self.tokens[i] == t;
+              if (!isInPlace) return false;
+            });
+          }
+          return true;
+        }
+      }
+
+      class InputLanguage {
+        constructor(tokens) {
+          self.tokens = tokens;
+          self.wordsWithTokens = {};
+        }
+
+        defWord(tokenSequence, semantics, orderMatters = false) {
+          key = 0;
+          tokenSequence.forEach(token => {
+            key += token.charCodeAt();
+          })
+          self.wordsWithTokens[key] = new Word(tokenSequence, semantics, orderMatters)
+        }
+
+        read(tokenSequence) {
+          if (self.wordsWithTokens.hasOwnProperty(tokenSequence)) {
+            self.wordsWithTokens[tokenSequence].forEach((word) => {
+              if (word.is(tokenSequence)) {
+                word.semantics();
+                break;
+              }
+            });
+          }
+        }
+      }
+
       class DOMObject {
         constructor(varsIgnoringRender = []) {
           this.element = null;
@@ -136,8 +172,49 @@
         }
       }
 
+      //Constants
+      const ORANGE_OUTLINE_COLOR = "#ffa500";
+      const BLACK_OUTLINE_COLOR = "#000000";
+      const TOKENS = {
+        UP: "k",
+        DOWN: "j",
+        LEFT: "h",
+        RIGHT: "l",
+        LEFT_CLICK: " ",
+        RIGHT_CLICK: "Enter",
+        NEW_WINDOW: "t",
+        CLOSE_WINDOW: "q",
+        INC: "+",
+        DEC: "-",
+        GRAB: "g"
+      };
+
       //Main
       var selected = null;
+
+      var controls = new InputLanguage(Object.values(TOKENS))
+      controls.defWord([TOKENS.UP], () => {jumpUp()})
+      controls.defWord([TOKENS.DOWN], () => {jumpDown()})
+      controls.defWord([TOKENS.LEFT], () => {jumpLeft()})
+      controls.defWord([TOKENS.RIGHT], () => {jumpRight()})
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {expandWindowVertical()})
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {expandWindowVertical()})
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {shrinkWindowVertical()})
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {shrinkWindowVertical()})
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {expandWindowHorizontal()})
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {expandWindowHorizontal()})
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {shrinkWindowHorizontal()})
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {shrinkWindowHorizontal()})
+      controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {moveWindowUp()})
+      controls.defWord([TOKENS.GRAB, TOKENS.DOWN], () => {moveWindowDown()})
+      controls.defWord([TOKENS.GRAB, TOKENS.LEFT], () => {moveWindowLeft()})
+      controls.defWord([TOKENS.GRAB, TOKENS.RIGHT], () => {moveWindowRight()})
+
+      document.addEventListener('keydown', function(event) {
+        let input = parseKeyEvent(event);
+        controls.read(input);
+      })
+
 
       document.addEventListener("keydown", function (event) {
         console.log(event);
