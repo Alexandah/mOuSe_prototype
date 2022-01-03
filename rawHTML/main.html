@@ -164,9 +164,11 @@
       }
       */
 
+      var nextId = 0;
       class Window extends DOMObject {
         constructor(x, y, width, height) {
           super();
+          this.id = nextId++;
           this.x = x;
           this.y = y;
           this.width = width;
@@ -188,6 +190,8 @@
       //Constants
       const ORANGE_OUTLINE_COLOR = "#ffa500";
       const BLACK_OUTLINE_COLOR = "#000000";
+      const GREEN_OUTLINE_COLOR = "#0FFF50";
+      const DEFAULT_WINDOW_SIZE = { width: 250, height: 250 };
       const TOKENS = {
         UP: "k",
         DOWN: "j",
@@ -197,12 +201,13 @@
         RIGHT_CLICK: "Enter",
         NEW_WINDOW: "t",
         CLOSE_WINDOW: "q",
-        INC: "+",
-        DEC: "-",
+        INC: "Shift",
+        DEC: "Control",
         GRAB: "g",
       };
 
       //Main
+      var windows = {};
       var selected = null;
       var grabbed = false;
 
@@ -222,45 +227,53 @@
       controls.defWord([TOKENS.GRAB], () => {
         toggleGrab();
       });
+      controls.defWord([TOKENS.NEW_WINDOW], () => {
+        openWindow(0, 0);
+      });
+      controls.defWord([TOKENS.CLOSE_WINDOW], () => {
+        closeWindow(selected);
+      });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
-        expandWindowVertical();
+        expandWindowVertical(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {
-        expandWindowVertical();
+        expandWindowVertical(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {
-        shrinkWindowVertical();
+        shrinkWindowVertical(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {
-        shrinkWindowVertical();
+        shrinkWindowVertical(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {
-        expandWindowHorizontal();
+        expandWindowHorizontal(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {
-        expandWindowHorizontal();
+        expandWindowHorizontal(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {
-        shrinkWindowHorizontal();
+        shrinkWindowHorizontal(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {
-        shrinkWindowHorizontal();
+        shrinkWindowHorizontal(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {
-        moveWindowUp();
+        moveWindowUp(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DOWN], () => {
-        moveWindowDown();
+        moveWindowDown(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.LEFT], () => {
-        moveWindowLeft();
+        moveWindowLeft(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.RIGHT], () => {
-        moveWindowRight();
+        moveWindowRight(selected);
       });
 
       document.addEventListener("keydown", function (event) {
+        event.preventDefault();
         let input = parseKeyEvent(event);
+        console.log(input);
         controls.read(input);
       });
 
@@ -272,6 +285,9 @@
           case "Alt":
             key = false;
             break;
+          case TOKENS.GRAB:
+            if (grabbed) key = false;
+            break;
           default:
             key = key.toLowerCase();
             break;
@@ -279,70 +295,68 @@
         var ctrl = event.ctrlKey ? "Control" : false;
         var alt = event.altKey ? "Alt" : false;
         var shift = event.shiftKey ? "Shift" : false;
-        var rawInput = [key, ctrl, alt, shift];
+        var currentGrabToken = grabbed ? TOKENS.GRAB : false;
+        var rawInput = [key, ctrl, alt, shift, currentGrabToken];
         return rawInput.filter((x) => x);
       }
 
       function toggleSelected(windowToSelect) {
         if (grabbed) toggleGrab();
-        selected.outlineColor = BLACK_OUTLINE_COLOR;
-        windowToSelect.outlineColor = ORANGE_OUTLINE_COLOR;
+        if (selected != null) selected.outlineColor = BLACK_OUTLINE_COLOR;
+        windowToSelect.outlineColor = GREEN_OUTLINE_COLOR;
         selected = windowToSelect;
       }
+      function toggleGrab() {
+        if (selected != null) {
+          grabbed = !grabbed;
+          if (grabbed) selected.outlineColor = ORANGE_OUTLINE_COLOR;
+          else selected.outlineColor = GREEN_OUTLINE_COLOR;
+        }
+      }
+
       function jumpUp() {}
       function jumpDown() {}
       function jumpLeft() {}
       function jumpRight() {}
-      function toggleGrab() {
-        console.log("toggleGrab");
-        if (selected != null) {
-          grabbed = !grabbed;
-          if (grabbed) selected.outlineColor = ORANGE_OUTLINE_COLOR;
-          else selected.outlineColor = BLACK_OUTLINE_COLOR;
-        }
+      function expandWindowHorizontal(windowToChange) {
+        windowToChange.width *= 2;
       }
-      function expandWindowHorizontal() {}
-      function expandWindowVertical() {}
-      function shrinkWindowHorizontal() {}
-      function shrinkWindowVertical() {}
-      function moveWindowLeft() {}
-      function moveWindowRight() {}
-      function moveWindowUp() {}
-      function moveWindowDown() {}
-
-      document.addEventListener("keydown", function (event) {
-        console.log(event);
-        switch (event.key) {
-          case TOKENS.DOWN:
-            selected.y += 50;
-            break;
-          case TOKENS.UP:
-            selected.y -= 50;
-            break;
-          case TOKENS.LEFT:
-            selected.x -= 50;
-            break;
-          case TOKENS.RIGHT:
-            selected.x += 50;
-            break;
-          case TOKENS.NEW_WINDOW:
-            var w = new Window(0, 0, 100, 100);
-            w.x = 500;
-            w.y = 500;
-            selected = w;
-            break;
-          case TOKENS.RIGHT_CLICK:
-            selected.outlineColor = ORANGE_OUTLINE_COLOR;
-            break;
-          case TOKENS.LEFT_CLICK:
-            selected.outlineColor = BLACK_OUTLINE_COLOR;
-            break;
-          case TOKENS.CLOSE_WINDOW:
-            selected.destroy();
-            selected = null;
-            break;
-        }
-      });
+      function expandWindowVertical(windowToChange) {
+        windowToChange.height *= 2;
+      }
+      function shrinkWindowHorizontal(windowToChange) {
+        windowToChange.width /= 2;
+      }
+      function shrinkWindowVertical(windowToChange) {
+        windowToChange.height /= 2;
+      }
+      function moveWindowLeft(windowToMove) {
+        windowToMove.x -= windowToMove.width;
+      }
+      function moveWindowRight(windowToMove) {
+        windowToMove.x += windowToMove.width;
+      }
+      function moveWindowUp(windowToMove) {
+        windowToMove.y -= windowToMove.height;
+      }
+      function moveWindowDown(windowToMove) {
+        windowToMove.y += windowToMove.height;
+      }
+      function openWindow(x, y) {
+        var window = new Window(
+          x,
+          y,
+          DEFAULT_WINDOW_SIZE.width,
+          DEFAULT_WINDOW_SIZE.height
+        );
+        windows[window.id] = window;
+        toggleSelected(window);
+      }
+      function closeWindow(windowToClose) {
+        if (selected === windowToClose) selected = null;
+        delete windows[windowToClose.id];
+        windowToClose.destroy();
+      }
     </script>
   </body>
 </html>
