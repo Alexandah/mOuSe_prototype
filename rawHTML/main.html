@@ -314,10 +314,62 @@
         }
       }
 
-      function jumpUp() {}
-      function jumpDown() {}
-      function jumpLeft() {}
-      function jumpRight() {}
+      function getWindowClosestToSelectedFrom(windows) {
+        var closest = null;
+        var closestDistance = Infinity;
+        windows.forEach((window) => {
+          var distance =
+            Math.abs(window.x - selected.x) + Math.abs(window.y - selected.y);
+          if (distance < closestDistance) {
+            closest = window;
+            closestDistance = distance;
+          }
+        });
+        if (closest == null) return selected;
+        else return closest;
+      }
+
+      function jumpUp() {
+        if (selected != null) {
+          var windowsAbove = Object.values(windows).filter(
+            (window) => window.y < selected.y
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsAbove);
+          toggleSelected(selected);
+          toggleSelected(jumpTo);
+        }
+      }
+      function jumpDown() {
+        if (selected != null) {
+          var windowsBelow = Object.values(windows).filter(
+            (window) => window.y > selected.y
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsBelow);
+          toggleSelected(selected);
+          toggleSelected(jumpTo);
+        }
+      }
+      function jumpLeft() {
+        if (selected != null) {
+          var windowsLeft = Object.values(windows).filter(
+            (window) => window.x < selected.x
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsLeft);
+          toggleSelected(selected);
+          toggleSelected(jumpTo);
+        }
+      }
+      function jumpRight() {
+        if (selected != null) {
+          var windowsRight = Object.values(windows).filter(
+            (window) => window.x > selected.x
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsRight);
+          toggleSelected(selected);
+          toggleSelected(jumpTo);
+        }
+      }
+
       function expandWindowHorizontal(windowToChange) {
         windowToChange.width *= 2;
       }
