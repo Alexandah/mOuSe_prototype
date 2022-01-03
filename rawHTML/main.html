@@ -23,9 +23,7 @@
       <li>Spacebar ~ left click</li>
     </ul>
 
-    <script type="module">
-      import "./AlxndrDOM.js";
-
+    <script>
       //DOM Helpers
       function get(id) {
         return document.getElementById(id);
@@ -59,21 +57,21 @@
       //Entities
       class Word {
         constructor(tokens, semantics, orderMatters = false) {
-          self.tokens = tokens;
-          self.semantics = semantics;
-          self.orderMatters = orderMatters;
+          this.tokens = tokens;
+          this.semantics = semantics;
+          this.orderMatters = orderMatters;
         }
 
         is(tokenSequence) {
-          if (!orderMatters) {
+          if (!this.orderMatters) {
             tokenSequence.forEach((t) => {
-              let isInWord = self.tokens.indexOf(t) != -1;
+              let isInWord = this.tokens.indexOf(t) != -1;
               if (!isInWord) return false;
             });
           } else {
             if (tokenSequence.length != self.tokens.length) return false;
             tokenSequence.forEach((t, i) => {
-              let isInPlace = self.tokens[i] == t;
+              let isInPlace = this.tokens[i] == t;
               if (!isInPlace) return false;
             });
           }
@@ -88,22 +86,37 @@
         }
 
         defWord(tokenSequence, semantics, orderMatters = false) {
-          key = 0;
-          tokenSequence.forEach(token => {
+          var key = 0;
+          tokenSequence.forEach((token) => {
             key += token.charCodeAt();
-          })
-          self.wordsWithTokens[key] = new Word(tokenSequence, semantics, orderMatters)
+          });
+
+          var word = new Word(tokenSequence, semantics, orderMatters);
+
+          if (!self.wordsWithTokens.hasOwnProperty(key))
+            self.wordsWithTokens[key] = [word];
+          else self.wordsWithTokens[key].push(word);
+        }
+
+        getWord(tokenSequence) {
+          var key = 0;
+          tokenSequence.forEach((token) => {
+            key += token.charCodeAt();
+          });
+
+          if (!self.wordsWithTokens.hasOwnProperty(key)) return null;
+
+          var words = self.wordsWithTokens[key];
+          for (var i = 0; i < words.length; i++) {
+            if (words[i].is(tokenSequence)) return words[i];
+          }
+
+          return null;
         }
 
         read(tokenSequence) {
-          if (self.wordsWithTokens.hasOwnProperty(tokenSequence)) {
-            self.wordsWithTokens[tokenSequence].forEach((word) => {
-              if (word.is(tokenSequence)) {
-                word.semantics();
-                break;
-              }
-            });
-          }
+          var word = this.getWord(tokenSequence);
+          if (word != null) word.semantics();
         }
       }
 
@@ -186,41 +199,108 @@
         CLOSE_WINDOW: "q",
         INC: "+",
         DEC: "-",
-        GRAB: "g"
+        GRAB: "g",
       };
 
       //Main
       var selected = null;
+      var grabbed = false;
 
-      var controls = new InputLanguage(Object.values(TOKENS))
-      controls.defWord([TOKENS.UP], () => {jumpUp()})
-      controls.defWord([TOKENS.DOWN], () => {jumpDown()})
-      controls.defWord([TOKENS.LEFT], () => {jumpLeft()})
-      controls.defWord([TOKENS.RIGHT], () => {jumpRight()})
-      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {expandWindowVertical()})
-      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {expandWindowVertical()})
-      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {shrinkWindowVertical()})
-      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {shrinkWindowVertical()})
-      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {expandWindowHorizontal()})
-      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {expandWindowHorizontal()})
-      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {shrinkWindowHorizontal()})
-      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {shrinkWindowHorizontal()})
-      controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {moveWindowUp()})
-      controls.defWord([TOKENS.GRAB, TOKENS.DOWN], () => {moveWindowDown()})
-      controls.defWord([TOKENS.GRAB, TOKENS.LEFT], () => {moveWindowLeft()})
-      controls.defWord([TOKENS.GRAB, TOKENS.RIGHT], () => {moveWindowRight()})
+      var controls = new InputLanguage(Object.values(TOKENS));
+      controls.defWord([TOKENS.UP], () => {
+        jumpUp();
+      });
+      controls.defWord([TOKENS.DOWN], () => {
+        jumpDown();
+      });
+      controls.defWord([TOKENS.LEFT], () => {
+        jumpLeft();
+      });
+      controls.defWord([TOKENS.RIGHT], () => {
+        jumpRight();
+      });
+      controls.defWord([TOKENS.GRAB], () => {
+        toggleGrab();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
+        expandWindowVertical();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {
+        expandWindowVertical();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {
+        shrinkWindowVertical();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {
+        shrinkWindowVertical();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {
+        expandWindowHorizontal();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {
+        expandWindowHorizontal();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {
+        shrinkWindowHorizontal();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {
+        shrinkWindowHorizontal();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {
+        moveWindowUp();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DOWN], () => {
+        moveWindowDown();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.LEFT], () => {
+        moveWindowLeft();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.RIGHT], () => {
+        moveWindowRight();
+      });
 
-      document.addEventListener('keydown', function(event) {
+      document.addEventListener("keydown", function (event) {
         let input = parseKeyEvent(event);
         controls.read(input);
-      })
+      });
 
-      function parseKeyEvent(event) {}
+      function parseKeyEvent(event) {
+        var key = event.key;
+        switch (key) {
+          case "Control":
+          case "Shift":
+          case "Alt":
+            key = false;
+            break;
+          default:
+            key = key.toLowerCase();
+            break;
+        }
+        var ctrl = event.ctrlKey ? "Control" : false;
+        var alt = event.altKey ? "Alt" : false;
+        var shift = event.shiftKey ? "Shift" : false;
+        var rawInput = [key, ctrl, alt, shift];
+        return rawInput.filter((x) => x);
+      }
 
+      function toggleSelected(windowToSelect) {
+        if (grabbed) toggleGrab();
+        selected.outlineColor = BLACK_OUTLINE_COLOR;
+        windowToSelect.outlineColor = ORANGE_OUTLINE_COLOR;
+        selected = windowToSelect;
+      }
       function jumpUp() {}
       function jumpDown() {}
       function jumpLeft() {}
       function jumpRight() {}
+      function toggleGrab() {
+        console.log("toggleGrab");
+        if (selected != null) {
+          grabbed = !grabbed;
+          if (grabbed) selected.outlineColor = ORANGE_OUTLINE_COLOR;
+          else selected.outlineColor = BLACK_OUTLINE_COLOR;
+        }
+      }
       function expandWindowHorizontal() {}
       function expandWindowVertical() {}
       function shrinkWindowHorizontal() {}
@@ -230,35 +310,34 @@
       function moveWindowUp() {}
       function moveWindowDown() {}
 
-
       document.addEventListener("keydown", function (event) {
         console.log(event);
         switch (event.key) {
-          case Keybindings.DOWN:
+          case TOKENS.DOWN:
             selected.y += 50;
             break;
-          case Keybindings.UP:
+          case TOKENS.UP:
             selected.y -= 50;
             break;
-          case Keybindings.LEFT:
+          case TOKENS.LEFT:
             selected.x -= 50;
             break;
-          case Keybindings.RIGHT:
+          case TOKENS.RIGHT:
             selected.x += 50;
             break;
-          case Keybindings.NEW_WINDOW:
+          case TOKENS.NEW_WINDOW:
             var w = new Window(0, 0, 100, 100);
             w.x = 500;
             w.y = 500;
             selected = w;
             break;
-          case Keybindings.RIGHT_CLICK:
+          case TOKENS.RIGHT_CLICK:
             selected.outlineColor = ORANGE_OUTLINE_COLOR;
             break;
-          case Keybindings.LEFT_CLICK:
+          case TOKENS.LEFT_CLICK:
             selected.outlineColor = BLACK_OUTLINE_COLOR;
             break;
-          case Keybindings.CLOSE_WINDOW:
+          case TOKENS.CLOSE_WINDOW:
             selected.destroy();
             selected = null;
             break;
