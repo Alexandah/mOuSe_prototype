@@ -234,28 +234,28 @@
         closeWindow(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
-        expandWindowVertical(selected);
+        expandWindowUp(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {
-        expandWindowVertical(selected);
+        expandWindowDown(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {
-        shrinkWindowVertical(selected);
+        shrinkWindowUp(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {
-        shrinkWindowVertical(selected);
+        shrinkWindowDown(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {
-        expandWindowHorizontal(selected);
+        expandWindowLeft(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {
-        expandWindowHorizontal(selected);
+        expandWindowRight(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {
-        shrinkWindowHorizontal(selected);
+        shrinkWindowLeft(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {
-        shrinkWindowHorizontal(selected);
+        shrinkWindowRight(selected);
       });
       controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {
         moveWindowUp(selected);
@@ -370,6 +370,7 @@
         }
       }
 
+      //v1
       function expandWindowHorizontal(windowToChange) {
         windowToChange.width *= 2;
       }
@@ -382,6 +383,37 @@
       function shrinkWindowVertical(windowToChange) {
         windowToChange.height /= 2;
       }
+
+      //v2 incorporating direction
+      function expandWindowUp(windowToChange) {
+        windowToChange.height *= 2;
+        windowToChange.y -= windowToChange.width;
+      }
+      function expandWindowDown(windowToChange) {
+        windowToChange.height *= 2;
+      }
+      function expandWindowRight(windowToChange) {
+        windowToChange.width *= 2;
+      }
+      function expandWindowLeft(windowToChange) {
+        windowToChange.width *= 2;
+        windowToChange.x -= windowToChange.height;
+      }
+      function shrinkWindowUp(windowToChange) {
+        windowToChange.height /= 2;
+      }
+      function shrinkWindowDown(windowToChange) {
+        windowToChange.height /= 2;
+        windowToChange.y += windowToChange.height;
+      }
+      function shrinkWindowRight(windowToChange) {
+        windowToChange.width /= 2;
+        windowToChange.x += windowToChange.width;
+      }
+      function shrinkWindowLeft(windowToChange) {
+        windowToChange.width /= 2;
+      }
+
       function moveWindowLeft(windowToMove) {
         windowToMove.x -= windowToMove.width;
       }
