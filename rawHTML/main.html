@@ -191,7 +191,12 @@
       const ORANGE_OUTLINE_COLOR = "#ffa500";
       const BLACK_OUTLINE_COLOR = "#000000";
       const GREEN_OUTLINE_COLOR = "#0FFF50";
-      const DEFAULT_WINDOW_SIZE = { width: 250, height: 250 };
+      const SCREEN_WIDTH = window.innerWidth;
+      const SCREEN_HEIGHT = window.innerHeight;
+      const DEFAULT_WINDOW_SIZE = {
+        width: SCREEN_WIDTH / 4,
+        height: SCREEN_HEIGHT / 2,
+      };
       const TOKENS = {
         UP: "k",
         DOWN: "j",
@@ -203,6 +208,8 @@
         CLOSE_WINDOW: "q",
         INC: "Shift",
         DEC: "Control",
+        DBL_INC: "ShiftShift",
+        DBL_DEC: "ControlControl",
         GRAB: "g",
       };
 
@@ -370,32 +377,23 @@
         }
       }
 
-      //v1
-      function expandWindowHorizontal(windowToChange) {
-        windowToChange.width *= 2;
-      }
-      function expandWindowVertical(windowToChange) {
-        windowToChange.height *= 2;
-      }
-      function shrinkWindowHorizontal(windowToChange) {
-        windowToChange.width /= 2;
-      }
-      function shrinkWindowVertical(windowToChange) {
-        windowToChange.height /= 2;
-      }
-
-      //v2 incorporating direction
       function expandWindowUp(windowToChange) {
-        windowToChange.height *= 2;
+        if (windowToChange.height * 2 > SCREEN_HEIGHT) return;
+        if (windowToChange.y - windowToChange.height < 0) return;
         windowToChange.y -= windowToChange.width;
+        windowToChange.height *= 2;
       }
       function expandWindowDown(windowToChange) {
+        if (windowToChange.height * 2 > SCREEN_HEIGHT) return;
         windowToChange.height *= 2;
       }
       function expandWindowRight(windowToChange) {
+        if (windowToChange.width * 2 > SCREEN_WIDTH) return;
         windowToChange.width *= 2;
       }
       function expandWindowLeft(windowToChange) {
+        if (windowToChange.width * 2 > SCREEN_WIDTH) return;
+        if (windowToChange.x - windowToChange.width < 0) return;
         windowToChange.width *= 2;
         windowToChange.x -= windowToChange.height;
       }
@@ -414,18 +412,41 @@
         windowToChange.width /= 2;
       }
 
+      function moveWindow(windowToMove, destPos) {
+        if (destPos.x < 0) destPos.x = 0;
+        if (destPos.x > SCREEN_WIDTH - windowToMove.width)
+          destPos.x = SCREEN_WIDTH - windowToMove.width;
+        if (destPos.y < 0) destPos.y = 0;
+        if (destPos.y > SCREEN_HEIGHT - windowToMove.height)
+          destPos.y = SCREEN_HEIGHT - windowToMove.height;
+        windowToMove.x = destPos.x;
+        windowToMove.y = destPos.y;
+      }
       function moveWindowLeft(windowToMove) {
-        windowToMove.x -= windowToMove.width;
+        moveWindow(windowToMove, {
+          x: windowToMove.x - windowToMove.width,
+          y: windowToMove.y,
+        });
       }
       function moveWindowRight(windowToMove) {
-        windowToMove.x += windowToMove.width;
+        moveWindow(windowToMove, {
+          x: windowToMove.x + windowToMove.width,
+          y: windowToMove.y,
+        });
       }
       function moveWindowUp(windowToMove) {
-        windowToMove.y -= windowToMove.height;
+        moveWindow(windowToMove, {
+          x: windowToMove.x,
+          y: windowToMove.y - windowToMove.height,
+        });
       }
       function moveWindowDown(windowToMove) {
-        windowToMove.y += windowToMove.height;
+        moveWindow(windowToMove, {
+          x: windowToMove.x,
+          y: windowToMove.y + windowToMove.height,
+        });
       }
+
       function openWindow(x, y) {
         var window = new Window(
           x,
