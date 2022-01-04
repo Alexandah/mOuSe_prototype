@@ -25,34 +25,75 @@
 
     <script>
       //DOM Helpers
-      function get(id) {
-        return document.getElementById(id);
-      }
+      class AlxndrDOM {
+        constructor() {
+          this.domLevels = {};
+          var root = this.getTag("html");
+          this.chartDOMLevels(root, 0);
+        }
 
-      function getClass(className) {
-        return document.getElementsByClassName(className);
-      }
+        chartDOMLevels(parentNode, lvl) {
+          if (this.domLevels.hasOwnProperty(lvl)) {
+            this.domLevels[lvl].push(parentNode);
+          } else {
+            this.domLevels[lvl] = [parentNode];
+          }
+          if (this.parentNode != null) this.parentNode.lvl = lvl;
 
-      function getTags(tagName) {
-        return document.getElementsByTagName(tagName);
-      }
+          if (parentNode.hasChildNodes()) {
+            for (var i = 0; i < parentNode.childNodes.length; i++) {
+              this.chartDOMLevels(parentNode.childNodes[i], lvl + 1);
+            }
+          }
+        }
 
-      function getTag(tagName) {
-        return getTags(tagName)[0];
-      }
+        get(id) {
+          return document.getElementById(id);
+        }
 
-      function makeDiv(parent = document.body) {
-        var div = document.createElement("div");
-        parent.appendChild(div);
-        return div;
-      }
+        getClass(className) {
+          return document.getElementsByClassName(className);
+        }
 
-      function makeP(text, parent = document.body) {
-        var p = document.createElement("p");
-        p.appendChild(document.createTextNode(text));
-        parent.appendChild(p);
-        return p;
+        getTags(tagName) {
+          return document.getElementsByTagName(tagName);
+        }
+
+        getTag(tagName) {
+          return this.getTags(tagName)[0];
+        }
+
+        addElement(element, parent = document.body) {
+          parent.appendChild(element);
+          var nextLvl = parent.lvl + 1;
+          if (this.domLevels.hasOwnProperty(nextLvl)) {
+            this.domLevels[nextLvl].push(element);
+          } else {
+            this.domLevels[nextLvl] = [element];
+          }
+          element.lvl = nextLvl;
+          return element;
+        }
+
+        makeDiv(parent = document.body) {
+          var div = document.createElement("div");
+          return this.addElement(div, parent);
+        }
+
+        makeP(text, parent = document.body) {
+          var p = document.createElement("p");
+          p.appendChild(document.createTextNode(text));
+          return this.addElement(p, parent);
+        }
+
+        makeInput(type, name, parent = document.body) {
+          var input = document.createElement("input");
+          input.setAttribute("type", type);
+          input.setAttribute("name", name);
+          return this.addElement(input, parent);
+        }
       }
+      var alxdom = new AlxndrDOM();
 
       //Entities
       class Word {
@@ -123,6 +164,12 @@
       class DOMObject {
         constructor(varsIgnoringRender = []) {
           this.element = null;
+          this.onLeftClick = function () {
+            console.log("left");
+          };
+          this.onRightClick = function () {
+            console.log("right");
+          };
           this.render = function () {};
           this.destroy = function () {
             this.element.parentElement.removeChild(this.element);
@@ -174,7 +221,7 @@
           this.width = width;
           this.height = height;
           this.outlineColor = BLACK_OUTLINE_COLOR;
-          this.element = makeDiv();
+          this.element = alxdom.makeDiv();
           this.element.setAttribute("class", "window");
           this.render = function () {
             this.element.style.left = this.x + "px";
@@ -203,7 +250,7 @@
         LEFT: "h",
         RIGHT: "l",
         LEFT_CLICK: " ",
-        RIGHT_CLICK: "Enter",
+        RIGHT_CLICK: "enter",
         NEW_WINDOW: "t",
         CLOSE_WINDOW: "q",
         INC: "Shift",
@@ -239,6 +286,12 @@
       });
       controls.defWord([TOKENS.CLOSE_WINDOW], () => {
         closeWindow(selected);
+      });
+      controls.defWord([TOKENS.LEFT_CLICK], () => {
+        selected.onLeftClick();
+      });
+      controls.defWord([TOKENS.RIGHT_CLICK], () => {
+        selected.onRightClick();
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
         expandWindowUp(selected);
@@ -280,7 +333,7 @@
       document.addEventListener("keydown", function (event) {
         event.preventDefault();
         let input = parseKeyEvent(event);
-        console.log(input);
+        console.log(alxdom);
         controls.read(input);
       });
 
@@ -312,6 +365,7 @@
         if (selected != null) selected.outlineColor = BLACK_OUTLINE_COLOR;
         windowToSelect.outlineColor = GREEN_OUTLINE_COLOR;
         selected = windowToSelect;
+        selected.element.focus();
       }
       function toggleGrab() {
         if (selected != null) {
