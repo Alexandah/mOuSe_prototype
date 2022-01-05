@@ -75,6 +75,28 @@
           return element;
         }
 
+        traverseDOMSubtree(element, callback) {
+          callback(element);
+          element.childNodes.forEach((child) => {
+            this.traverseDOMSubtree(child, callback);
+          });
+        }
+
+        removeElement(element) {
+          this.traverseDOMSubtree(element, (e) => {
+            this.domLevels[e.lvl].splice(this.domLevels[e.lvl].indexOf(e), 1);
+          });
+          var parent = element.parentNode;
+          parent.removeChild(element);
+        }
+
+        moveElement(element, newParent) {
+          newParent.appendChild(element);
+          this.traverseDOMSubtree(element, (e) => {
+            e.lvl = e.parentNode.lvl + 1;
+          });
+        }
+
         makeDiv(parent = document.body) {
           var div = document.createElement("div");
           return this.addElement(div, parent);
