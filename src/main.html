@@ -30,6 +30,8 @@
           this.domLevels = {};
           var root = this.getTag("html");
           this.chartDOMLevels(root, 0);
+          console.log("initial domLevels: ", this.domLevels);
+          console.log("all levels: ");
         }
 
         chartDOMLevels(parentNode, lvl) {
@@ -64,8 +66,10 @@
         }
 
         addElement(element, parent = document.body) {
+          console.log("adding element: ", element, " to parent: ", parent);
           parent.appendChild(element);
           var nextLvl = parent.lvl + 1;
+          console.log("parent lvl: ", parent.lvl, " next lvl: ", nextLvl);
           if (this.domLevels.hasOwnProperty(nextLvl)) {
             this.domLevels[nextLvl].push(element);
           } else {
@@ -284,7 +288,10 @@
 
       //Main
       var windows = {};
+      var lastSelected = null;
       var selected = null;
+      var selectionLvl = null;
+      var windowsOnSelectionLvl = [];
       var grabbed = false;
 
       var controls = new InputLanguage(Object.values(TOKENS));
@@ -314,6 +321,12 @@
       });
       controls.defWord([TOKENS.RIGHT_CLICK], () => {
         selected.onRightClick();
+      });
+      controls.defWord([TOKENS.INC], () => {
+        moveSelectionLvlUp();
+      });
+      controls.defWord([TOKENS.DEC], () => {
+        moveSelectionLvlDown();
       });
       controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
         expandWindowUp(selected);
@@ -382,11 +395,13 @@
         return rawInput.filter((x) => x);
       }
 
-      function toggleSelected(windowToSelect) {
+      function setSelected(windowToSelect) {
         if (grabbed) toggleGrab();
         if (selected != null) selected.outlineColor = BLACK_OUTLINE_COLOR;
         windowToSelect.outlineColor = GREEN_OUTLINE_COLOR;
+        lastSelected = selected;
         selected = windowToSelect;
+        selectionLvl = selected.element.lvl;
         selected.element.focus();
       }
       function toggleGrab() {
@@ -395,6 +410,32 @@
           if (grabbed) selected.outlineColor = ORANGE_OUTLINE_COLOR;
           else selected.outlineColor = GREEN_OUTLINE_COLOR;
         }
+      }
+
+      function moveSelectionLvlUp() {
+        if (selectionLvl <= 2) return;
+        selectionLvl--;
+        windowsOnSelectionLvl = Object.values(windows).filter(
+          (x) => x.element.lvl == selectionLvl
+        );
+        console.log("moved selectionLvl up to ", selectionLvl);
+        var parent = Object.values(windows).find(
+          (x) => x.element === selected.element.parent
+        );
+        setSelected(parent);
+      }
+
+      function moveSelectionLvlDown() {
+        if (!this.selected.element.hasChildNodes()) return;
+        selectionLvl++;
+        windowsOnSelectionLvl = Object.values(windows).filter(
+          (x) => x.element.lvl == selectionLvl
+        );
+        console.log("moved selectionLvl down to ", selectionLvl);
+        var child = Object.values(windows).find(
+          (x) => x.element === selected.element.firstChild
+        );
+        setSelected(child);
       }
 
       function getWindowClosestToSelectedFrom(windows) {
@@ -418,8 +459,7 @@
             (window) => window.y < selected.y
           );
           var jumpTo = getWindowClosestToSelectedFrom(windowsAbove);
-          toggleSelected(selected);
-          toggleSelected(jumpTo);
+          setSelected(jumpTo);
         }
       }
       function jumpDown() {
@@ -428,8 +468,7 @@
             (window) => window.y > selected.y
           );
           var jumpTo = getWindowClosestToSelectedFrom(windowsBelow);
-          toggleSelected(selected);
-          toggleSelected(jumpTo);
+          setSelected(jumpTo);
         }
       }
       function jumpLeft() {
@@ -438,8 +477,7 @@
             (window) => window.x < selected.x
           );
           var jumpTo = getWindowClosestToSelectedFrom(windowsLeft);
-          toggleSelected(selected);
-          toggleSelected(jumpTo);
+          setSelected(jumpTo);
         }
       }
       function jumpRight() {
@@ -448,8 +486,7 @@
             (window) => window.x > selected.x
           );
           var jumpTo = getWindowClosestToSelectedFrom(windowsRight);
-          toggleSelected(selected);
-          toggleSelected(jumpTo);
+          setSelected(jumpTo);
         }
       }
 
@@ -531,7 +568,11 @@
           DEFAULT_WINDOW_SIZE.height
         );
         windows[window.id] = window;
-        toggleSelected(window);
+        setSelected(window);
+        console.log("all levels: ");
+        Object.values(windows).forEach((w) => {
+          console.log("window ", w, " has lvl ", w.element.lvl);
+        });
       }
       function closeWindow(windowToClose) {
         if (selected === windowToClose) selected = null;
