@@ -31,7 +31,6 @@
           var root = this.getTag("html");
           this.chartDOMLevels(root, 0);
           console.log("initial domLevels: ", this.domLevels);
-          console.log("all levels: ");
         }
 
         chartDOMLevels(parentNode, lvl) {
@@ -40,7 +39,7 @@
           } else {
             this.domLevels[lvl] = [parentNode];
           }
-          if (this.parentNode != null) this.parentNode.lvl = lvl;
+          if (parentNode != null) parentNode.lvl = lvl;
 
           if (parentNode.hasChildNodes()) {
             for (var i = 0; i < parentNode.childNodes.length; i++) {
@@ -66,10 +65,8 @@
         }
 
         addElement(element, parent = document.body) {
-          console.log("adding element: ", element, " to parent: ", parent);
           parent.appendChild(element);
           var nextLvl = parent.lvl + 1;
-          console.log("parent lvl: ", parent.lvl, " next lvl: ", nextLvl);
           if (this.domLevels.hasOwnProperty(nextLvl)) {
             this.domLevels[nextLvl].push(element);
           } else {
@@ -190,12 +187,8 @@
       class DOMObject {
         constructor(varsIgnoringRender = []) {
           this.element = null;
-          this.onLeftClick = function () {
-            console.log("left");
-          };
-          this.onRightClick = function () {
-            console.log("right");
-          };
+          this.onLeftClick = function () {};
+          this.onRightClick = function () {};
           this.render = function () {};
           this.destroy = function () {
             this.element.parentElement.removeChild(this.element);
@@ -284,6 +277,7 @@
         DBL_INC: "ShiftShift",
         DBL_DEC: "ControlControl",
         GRAB: "g",
+        DEBUG: "b",
       };
 
       //Main
@@ -295,6 +289,9 @@
       var grabbed = false;
 
       var controls = new InputLanguage(Object.values(TOKENS));
+
+      controls.defWord([TOKENS.DEBUG], () => {});
+
       controls.defWord([TOKENS.UP], () => {
         jumpUp();
       });
@@ -368,7 +365,7 @@
       document.addEventListener("keydown", function (event) {
         event.preventDefault();
         let input = parseKeyEvent(event);
-        console.log(alxdom);
+        // console.log(alxdom);
         controls.read(input);
       });
 
@@ -575,7 +572,7 @@
         });
       }
       function closeWindow(windowToClose) {
-        if (selected === windowToClose) selected = null;
+        if (selected === windowToClose) setSelected(lastSelected);
         delete windows[windowToClose.id];
         windowToClose.destroy();
       }
