@@ -490,7 +490,7 @@
       function expandWindowUp(windowToChange) {
         if (windowToChange.height * 2 > SCREEN_HEIGHT) return;
         if (windowToChange.y - windowToChange.height < 0) return;
-        windowToChange.y -= windowToChange.width;
+        windowToChange.y -= windowToChange.height;
         windowToChange.height *= 2;
       }
       function expandWindowDown(windowToChange) {
@@ -504,8 +504,8 @@
       function expandWindowLeft(windowToChange) {
         if (windowToChange.width * 2 > SCREEN_WIDTH) return;
         if (windowToChange.x - windowToChange.width < 0) return;
+        windowToChange.x -= windowToChange.width;
         windowToChange.width *= 2;
-        windowToChange.x -= windowToChange.height;
       }
       function shrinkWindowUp(windowToChange) {
         windowToChange.height /= 2;
