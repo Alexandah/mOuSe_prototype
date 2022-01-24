@@ -3,32 +3,38 @@ import "constants";
 
 export class DOMHopper {
   constructor() {
-    this.domLevels = {};
-    var root = getTag("body");
-    this.chartDOMLevels(root, 0);
+    this.root = getTag("body");
     this.selected = null;
     this.selected = this.setSelected(root);
     this.selectedDOMLvl = 0;
   }
 
-  chartDOMLevels(parentNode, lvl) {
-    if (this.domLevels.hasOwnProperty(lvl)) {
-      this.domLevels[lvl].push(parentNode);
-    } else {
-      this.domLevels[lvl] = [parentNode];
-    }
-    if (parentNode != null) parentNode.lvl = lvl;
+  distanceFromRoot(element) {
+    if (element === root) return 0;
+    else return 1 + distanceFromRoot(element.parent);
+  }
 
+  traverseDOMSubtree(node, func) {
+    func(node);
     if (parentNode.hasChildNodes()) {
-      for (var i = 0; i < parentNode.childNodes.length; i++) {
-        this.chartDOMLevels(parentNode.childNodes[i], lvl + 1);
-      }
+      node.childNodes.forEach((child) => {
+        traverseDOMSubtree(child, func);
+      });
     }
+  }
+
+  getDOMLvlElements(lvl) {
+    var selectedDOMLvlElements = [];
+    const grabIfOnSelectedDOMLvl = (node) => {
+      if (distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
+    };
+    this.traverseDOMSubtree(this.root, grabIfOnSelectedDOMLvl);
+    return selectedDOMLvlElements;
   }
 
   getSelectedDOMLvlElements() {
     if (this.selectedDOMLvl == null) return null;
-    return this.domLevels[this.selectedDOMLvl];
+    return this.getDOMLvlElements(this.selectedDOMLvl);
   }
 
   setSelected(element) {
@@ -78,19 +84,18 @@ export class DOMHopper {
   moveSelectionLvlUp() {
     if (this.selectedDOMLvl == 0) return;
     this.selectedDOMLvl--;
-    var parent = this.getSelectedDOMLvlElements().find(
-      (element) => element === this.selected.parent
-    );
+    var parent = this.selected.parent;
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
-    var hasNextDOMLvl = this.selectedDOMLvl + 1 in this.domLevels;
+    var nextDOMLvlElements = this.getDOMLvlElements(this.selectedDOMLvl + 1);
+    var hasNextDOMLvl = nextDOMLvlElements > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
     var selectedHasChild = this.selected.hasChildNodes();
     var descendant = selectedHasChild
       ? this.selected.firstChild
-      : this.domLevels[this.selectedDOMLvl][0];
+      : nextDOMLvlElements[this.selectedDOMLvl][0];
     this.setSelected(descendant);
   }
 }
