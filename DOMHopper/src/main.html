@@ -23,6 +23,55 @@
       <li>Spacebar ~ left click</li>
     </ul>
 
-    <script src="main.js"></script>
+    <script type="module">
+      import DOMHopper from "./DOMHopper.js";
+      import InputLanguage from "./InputLanguage.js";
+
+      var domHopper = new DOMHopper();
+
+      const UP = "k";
+      const DOWN = "j";
+      const LEFT = "h";
+      const RIGHT = "l";
+      const LEFT_CLICK = " ";
+      const RIGHT_CLICK = "enter";
+      const INC = "Shift";
+      const DEC = "Control";
+
+      var controls = new InputLanguage();
+      controls.defWord([UP], () => domHopper.jumpUp());
+      controls.defWord([DOWN], () => domHopper.jumpDown());
+      controls.defWord([RIGHT], () => domHopper.jumpRight());
+      controls.defWord([LEFT], () => domHopper.jumpLeft());
+      controls.defWord([INC], () => domHopper.moveSelectionLvlUp());
+      controls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
+
+      document.addEventListener("keydown", function (event) {
+        event.preventDefault();
+        let input = parseKeyEvent(event);
+        controls.read(input);
+      });
+
+      function parseKeyEvent(event) {
+        var key = event.key;
+        switch (key) {
+          case "Control":
+          case "Shift":
+            key = false;
+            break;
+          default:
+            key = key.toLowerCase();
+            break;
+        }
+        var ctrl = event.ctrlKey ? "Control" : false;
+        var shift = event.shiftKey ? "Shift" : false;
+        var rawInput = [key, ctrl, shift];
+        return rawInput.filter((x) => x);
+      }
+
+      console.log("Started DOMHopper Demo");
+      console.log("YEET!");
+      console.log("initial dom hopper state: ", domHopper);
+    </script>
   </body>
 </html>

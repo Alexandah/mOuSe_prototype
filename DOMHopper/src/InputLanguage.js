@@ -22,7 +22,7 @@ class Word {
   }
 }
 
-export class InputLanguage {
+export default class InputLanguage {
   constructor() {
     this.wordsWithTokens = {};
   }

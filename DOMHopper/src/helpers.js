@@ -1,20 +1,20 @@
-function get(id) {
+export function get(id) {
   return document.getElementById(id);
 }
 
-function getClass(className) {
+export function getClass(className) {
   return document.getElementsByClassName(className);
 }
 
-function getTags(tagName) {
+export function getTags(tagName) {
   return document.getElementsByTagName(tagName);
 }
 
-function getTag(tagName) {
+export function getTag(tagName) {
   return getTags(tagName)[0];
 }
 
-function getKeyContainingX(obj, X) {
+export function getKeyContainingX(obj, X) {
   var keyContainingX = null;
   Object.keys(obj).forEach((key) => {
     if (obj[key].indexOf(X) !== -1) {
