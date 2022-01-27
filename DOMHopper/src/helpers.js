@@ -14,6 +14,14 @@ export function getTag(tagName) {
   return getTags(tagName)[0];
 }
 
+export function getElementChildren(element) {
+  return element.childNodes.filter((node) => node.nodeType == 1);
+}
+
+export function hasElementChildren(element) {
+  return getElementChildren(element) > 0;
+}
+
 export function getKeyContainingX(obj, X) {
   var keyContainingX = null;
   Object.keys(obj).forEach((key) => {

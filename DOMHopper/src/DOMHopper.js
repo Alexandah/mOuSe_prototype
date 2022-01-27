@@ -1,11 +1,12 @@
-import { getTag } from "./helpers.js";
+import { getTag, getElementChildren, hasElementChildren } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
-    this.selected = null;
-    this.selected = this.setSelected(this.root);
+    this.selected = this.root;
+    this.selected.oldBorder = this.selected.style.border;
+    this.selected.style.border = "1px solid " + ORANGE_OUTLINE_COLOR;
     this.selectedDOMLvl = 0;
   }
 
@@ -17,8 +18,10 @@ export default class DOMHopper {
 
   traverseDOMSubtree(node, func) {
     func(node);
-    if (node.hasChildNodes()) {
-      node.childNodes.forEach((child) => {
+    console.log("on node: ", node);
+    let hasChildren = hasElementChildren(node);
+    if (hasChildren) {
+      getElementChildren(node).forEach((child) => {
         this.traverseDOMSubtree(child, func);
       });
     }
@@ -29,6 +32,7 @@ export default class DOMHopper {
     const grabIfOnSelectedDOMLvl = (node) => {
       if (this.distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
     };
+    console.log("entering dom tree traversal in getDOMLvlElements");
     this.traverseDOMSubtree(this.root, grabIfOnSelectedDOMLvl);
     return selectedDOMLvlElements;
   }
@@ -39,7 +43,7 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
-    console.log("setting selected for: ", this);
+    console.log("element", element);
     if (element !== this.selected) element.oldBorder = element.style.border;
     if (this.selected != null)
       this.selected.style.border = this.selected.oldBorder;
@@ -97,13 +101,13 @@ export default class DOMHopper {
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
-    console.log("this is: ", this);
     console.log("currently selected: ", this.selected);
-    var selectedHasChild = this.selected.hasChildNodes();
+    var selectedHasChild = hasElementChildren(this.selected);
     var descendant = selectedHasChild
-      ? this.selected.firstChild
+      ? getElementChildren(this.selected)[0]
       : nextDOMLvlElements[this.selectedDOMLvl][0];
     console.log("selection moved down to: ", descendant);
+    console.log("new selection lvl: ", this.selectedDOMLvl);
     this.setSelected(descendant);
   }
 }
