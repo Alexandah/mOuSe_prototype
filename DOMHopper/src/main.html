@@ -48,7 +48,9 @@
 
       document.addEventListener("keydown", function (event) {
         event.preventDefault();
+        console.log("keydown event: ", event);
         let input = parseKeyEvent(event);
+        console.log("parsed input: ", input);
         controls.read(input);
       });
 

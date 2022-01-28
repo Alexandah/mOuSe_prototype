@@ -1,4 +1,9 @@
-import { getTag, getElementChildren, hasElementChildren } from "./helpers.js";
+import {
+  getTag,
+  getElementChildren,
+  hasElementChildren,
+  excludeScripts,
+} from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
 export default class DOMHopper {
@@ -13,15 +18,13 @@ export default class DOMHopper {
   distanceFromRoot(element) {
     if (element === undefined) return 0;
     if (element === this.root) return 0;
-    else return 1 + this.distanceFromRoot(element.parent);
+    else return 1 + this.distanceFromRoot(element.parentElement);
   }
 
   traverseDOMSubtree(node, func) {
     func(node);
-    console.log("on node: ", node);
-    let hasChildren = hasElementChildren(node);
-    if (hasChildren) {
-      getElementChildren(node).forEach((child) => {
+    if (hasElementChildren(node)) {
+      excludeScripts(getElementChildren(node)).forEach((child) => {
         this.traverseDOMSubtree(child, func);
       });
     }
@@ -32,7 +35,6 @@ export default class DOMHopper {
     const grabIfOnSelectedDOMLvl = (node) => {
       if (this.distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
     };
-    console.log("entering dom tree traversal in getDOMLvlElements");
     this.traverseDOMSubtree(this.root, grabIfOnSelectedDOMLvl);
     return selectedDOMLvlElements;
   }
@@ -43,7 +45,6 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
-    console.log("element", element);
     if (element !== this.selected) element.oldBorder = element.style.border;
     if (this.selected != null)
       this.selected.style.border = this.selected.oldBorder;
@@ -70,8 +71,10 @@ export default class DOMHopper {
 
   jump(dirFunc) {
     if (this.selected != null) {
-      var elementsAbove = this.getSelectedDOMLvlElements().filter(dirFunc);
-      var jumpTo = this.getElementClosestToSelectedFrom(elementsAbove);
+      this.getSelectedDOMLvlElements().
+      var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
+      console.log("jumping towards elements: ", elementsInDir);
+      var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
       this.setSelected(jumpTo);
     }
   }
@@ -89,9 +92,13 @@ export default class DOMHopper {
   }
 
   moveSelectionLvlUp() {
-    if (this.selectedDOMLvl == 0) return;
+    console.log("moving selection lvl up. current state: ", this);
+    let atTop = this.selected === this.root;
+    if (atTop) return;
     this.selectedDOMLvl--;
-    var parent = this.selected.parent;
+    console.log("new selection lvl: ", this.selectedDOMLvl);
+    var parent = this.selected.parentElement;
+    console.log("parent to move to: ", parent);
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
@@ -101,7 +108,6 @@ export default class DOMHopper {
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
-    console.log("currently selected: ", this.selected);
     var selectedHasChild = hasElementChildren(this.selected);
     var descendant = selectedHasChild
       ? getElementChildren(this.selected)[0]

@@ -15,11 +15,17 @@ export function getTag(tagName) {
 }
 
 export function getElementChildren(element) {
-  return element.childNodes.filter((node) => node.nodeType == 1);
+  return Array.from(element.childNodes).filter((node) => node.nodeType == 1);
 }
 
 export function hasElementChildren(element) {
-  return getElementChildren(element) > 0;
+  return getElementChildren(element).length > 0;
+}
+
+export function excludeScripts(elementList) {
+  return Array.from(elementList).filter(
+    (node) => !(node instanceof HTMLScriptElement)
+  );
 }
 
 export function getKeyContainingX(obj, X) {
