@@ -3,6 +3,7 @@ import {
   getElementChildren,
   hasElementChildren,
   excludeScripts,
+  getScreenPos,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
@@ -50,7 +51,6 @@ export default class DOMHopper {
       this.selected.style.border = this.selected.oldBorder;
     element.style.border = "1px solid " + ORANGE_OUTLINE_COLOR;
     this.selected = element;
-    console.log("set selected to: ", this.selected);
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -58,8 +58,8 @@ export default class DOMHopper {
     var closestDistance = Infinity;
     elements.forEach((element) => {
       var distance =
-        Math.abs(element.x - this.selected.x) +
-        Math.abs(element.y - this.selected.y);
+        Math.abs(getScreenPos(element).x - getScreenPos(this.selected).x) +
+        Math.abs(getScreenPos(element).y - getScreenPos(this.selected).y);
       if (distance < closestDistance) {
         closest = element;
         closestDistance = distance;
@@ -71,40 +71,41 @@ export default class DOMHopper {
 
   jump(dirFunc) {
     if (this.selected != null) {
-      this.getSelectedDOMLvlElements().
       var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
-      console.log("jumping towards elements: ", elementsInDir);
       var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
       this.setSelected(jumpTo);
     }
   }
   jumpUp() {
-    this.jump((element) => element.y < this.selected.y);
+    this.jump(
+      (element) => getScreenPos(element).y < getScreenPos(this.selected).y
+    );
   }
   jumpDown() {
-    this.jump((element) => element.y > this.selected.y);
+    this.jump(
+      (element) => getScreenPos(element).y > getScreenPos(this.selected).y
+    );
   }
   jumpLeft() {
-    this.jump((element) => element.x < this.selected.x);
+    this.jump(
+      (element) => getScreenPos(element).x < getScreenPos(this.selected).x
+    );
   }
   jumpRight() {
-    this.jump((element) => element.x > this.selected.x);
+    this.jump(
+      (element) => getScreenPos(element).x > getScreenPos(this.selected).x
+    );
   }
 
   moveSelectionLvlUp() {
-    console.log("moving selection lvl up. current state: ", this);
     let atTop = this.selected === this.root;
     if (atTop) return;
     this.selectedDOMLvl--;
-    console.log("new selection lvl: ", this.selectedDOMLvl);
     var parent = this.selected.parentElement;
-    console.log("parent to move to: ", parent);
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
-    console.log("moving selection lvl down. current state: ", this);
     var nextDOMLvlElements = this.getDOMLvlElements(this.selectedDOMLvl + 1);
-    console.log("elements in the next DOM lvl: ", nextDOMLvlElements);
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
@@ -112,8 +113,6 @@ export default class DOMHopper {
     var descendant = selectedHasChild
       ? getElementChildren(this.selected)[0]
       : nextDOMLvlElements[this.selectedDOMLvl][0];
-    console.log("selection moved down to: ", descendant);
-    console.log("new selection lvl: ", this.selectedDOMLvl);
     this.setSelected(descendant);
   }
 }

@@ -14,6 +14,14 @@ export function getTag(tagName) {
   return getTags(tagName)[0];
 }
 
+export function getScreenPos(element) {
+  var rect = element.getBoundingClientRect();
+  return {
+    x: rect.left,
+    y: rect.top,
+  };
+}
+
 export function getElementChildren(element) {
   return Array.from(element.childNodes).filter((node) => node.nodeType == 1);
 }
