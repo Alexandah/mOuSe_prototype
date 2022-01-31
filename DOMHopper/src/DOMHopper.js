@@ -125,6 +125,7 @@ export default class DOMHopper {
     if (this.selected != null) {
       console.log("left clicking");
       if (isEditable(this.selected)) {
+        console.log("entering editing mode");
         this.editingMode = true;
       }
       this.selected.focus();

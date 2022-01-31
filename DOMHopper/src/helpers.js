@@ -47,7 +47,7 @@ export function getKeyContainingX(obj, X) {
 }
 
 export function isEditable(element) {
-  switch (element.type) {
+  switch (element.nodeName) {
     case "INPUT":
       return true;
     default:
