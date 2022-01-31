@@ -4,6 +4,7 @@ import {
   hasElementChildren,
   excludeScripts,
   getScreenPos,
+  isEditable,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
@@ -14,6 +15,7 @@ export default class DOMHopper {
     this.selected.oldBorder = this.selected.style.border;
     this.selected.style.border = "1px solid " + ORANGE_OUTLINE_COLOR;
     this.selectedDOMLvl = 0;
+    this.editingMode = false;
   }
 
   distanceFromRoot(element) {
@@ -70,6 +72,7 @@ export default class DOMHopper {
   }
 
   jump(dirFunc) {
+    if (this.editingMode) return;
     if (this.selected != null) {
       var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
       var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
@@ -98,6 +101,7 @@ export default class DOMHopper {
   }
 
   moveSelectionLvlUp() {
+    if (this.editingMode) return;
     let atTop = this.selected === this.root;
     if (atTop) return;
     this.selectedDOMLvl--;
@@ -105,6 +109,7 @@ export default class DOMHopper {
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
+    if (this.editingMode) return;
     var nextDOMLvlElements = this.getDOMLvlElements(this.selectedDOMLvl + 1);
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
@@ -114,5 +119,23 @@ export default class DOMHopper {
       ? getElementChildren(this.selected)[0]
       : nextDOMLvlElements[this.selectedDOMLvl][0];
     this.setSelected(descendant);
+  }
+
+  leftClick() {
+    if (this.selected != null) {
+      console.log("left clicking");
+      if (isEditable(this.selected)) {
+        this.editingMode = true;
+      }
+      this.selected.focus();
+      this.selected.click();
+    }
+  }
+  rightClick() {
+    if (this.selected != null) {
+      console.log("right clicking");
+      this.selected.blur();
+      this.selected.contextmenu();
+    }
   }
 }

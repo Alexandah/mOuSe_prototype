@@ -5,27 +5,50 @@
     <style>
       .window {
         border: 1px solid black;
-        position: absolute;
+        padding: 10px;
+        margin: 10px;
       }
     </style>
   </head>
 
   <body>
-    <p>Hello! Here are the controls:</p>
-    <ul>
-      <li>j ~ down</li>
-      <li>k ~ up</li>
-      <li>h ~ left</li>
-      <li>l ~ right</li>
-      <li>Shift ~ go up in DOMHierarchy by 1</li>
-      <li>Ctrl ~ go down in DOMHierarchy by 1</li>
-      <li>Enter ~ right click</li>
-      <li>Spacebar ~ left click</li>
-    </ul>
+    <div class="window">
+      <p>Hello! Here are the controls:</p>
+      <ul>
+        <li>j ~ down</li>
+        <li>k ~ up</li>
+        <li>h ~ left</li>
+        <li>l ~ right</li>
+        <li>Shift ~ go up in DOMHierarchy by 1</li>
+        <li>Ctrl ~ go down in DOMHierarchy by 1</li>
+        <li>Enter ~ right click</li>
+        <li>Spacebar ~ left click</li>
+      </ul>
+      <div class="window">
+        <p>I'm a pretty sexy div</p>
+      </div>
+      <div class="window">
+        <p>as am I ;)</p>
+      </div>
+      <div class="window">
+        <p>But I am the dankest div!</p>
+      </div>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a also a window!</p>
+      <input type="text" value="type here daddy" />
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
 
     <script type="module">
       import DOMHopper from "./DOMHopper.js";
       import InputLanguage from "./InputLanguage.js";
+      import ToggleableEventListener from "./ToggleableEventListener.js";
 
       var domHopper = new DOMHopper();
 
@@ -37,21 +60,38 @@
       const RIGHT_CLICK = "enter";
       const INC = "Shift";
       const DEC = "Control";
+      const DEFAULT_MODE = "DefaultMode";
+      const EDITING_MODE = "EditingMode";
 
-      var controls = new InputLanguage();
-      controls.defWord([UP], () => domHopper.jumpUp());
-      controls.defWord([DOWN], () => domHopper.jumpDown());
-      controls.defWord([RIGHT], () => domHopper.jumpRight());
-      controls.defWord([LEFT], () => domHopper.jumpLeft());
-      controls.defWord([INC], () => domHopper.moveSelectionLvlUp());
-      controls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
+      var navControls = new InputLanguage([
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+        LEFT_CLICK,
+        RIGHT_CLICK,
+        INC,
+        DEC,
+      ]);
+      navControls.defWord([UP], () => domHopper.jumpUp());
+      navControls.defWord([DOWN], () => domHopper.jumpDown());
+      navControls.defWord([RIGHT], () => domHopper.jumpRight());
+      navControls.defWord([LEFT], () => domHopper.jumpLeft());
+      navControls.defWord([INC], () => domHopper.moveSelectionLvlUp());
+      navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
+      navControls.defWord([LEFT_CLICK], () => domHopper.leftClick());
+      navControls.defWord([RIGHT_CLICK], () => domHopper.rightClick());
+
+      var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE]);
+      modeControls.defWord([DEFAULT_MODE], (input, event) => {
+        event.preventDefault();
+        navControls.read(input);
+      });
+      modeControls.defWord([EDITING_MODE], () => {});
 
       document.addEventListener("keydown", function (event) {
-        event.preventDefault();
-        console.log("keydown event: ", event);
         let input = parseKeyEvent(event);
-        console.log("parsed input: ", input);
-        controls.read(input);
+        modeControls.read(input, [event]);
       });
 
       function parseKeyEvent(event) {
@@ -67,7 +107,9 @@
         }
         var ctrl = event.ctrlKey ? "Control" : false;
         var shift = event.shiftKey ? "Shift" : false;
-        var rawInput = [key, ctrl, shift];
+        var editingMode = domHopper.editingMode ? EDITING_MODE : false;
+        var defaultMode = !editingMode ? DEFAULT_MODE : false;
+        var rawInput = [key, ctrl, shift, editingMode, defaultMode];
         return rawInput.filter((x) => x);
       }
 

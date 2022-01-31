@@ -45,3 +45,12 @@ export function getKeyContainingX(obj, X) {
   });
   return keyContainingX;
 }
+
+export function isEditable(element) {
+  switch (element.type) {
+    case "INPUT":
+      return true;
+    default:
+      return false;
+  }
+}

@@ -23,11 +23,18 @@ class Word {
 }
 
 export default class InputLanguage {
-  constructor() {
+  constructor(tokens) {
+    this.tokens = tokens;
     this.wordsWithTokens = {};
   }
 
+  filterOutUnrecongizedTokens(tokenSequence) {
+    return tokenSequence.filter((token) => this.tokens.indexOf(token) != -1);
+  }
+
   defWord(tokenSequence, semantics, orderMatters = false) {
+    tokenSequence = this.filterOutUnrecongizedTokens(tokenSequence);
+
     var key = 0;
     tokenSequence.forEach((token) => {
       key += token.charCodeAt();
@@ -41,6 +48,8 @@ export default class InputLanguage {
   }
 
   getWord(tokenSequence) {
+    tokenSequence = this.filterOutUnrecongizedTokens(tokenSequence);
+
     var key = 0;
     tokenSequence.forEach((token) => {
       key += token.charCodeAt();
@@ -56,8 +65,8 @@ export default class InputLanguage {
     return null;
   }
 
-  read(tokenSequence) {
+  read(tokenSequence, args = []) {
     var word = this.getWord(tokenSequence);
-    if (word != null) word.semantics();
+    if (word != null) word.semantics(...args);
   }
 }
