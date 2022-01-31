@@ -121,20 +121,32 @@ export default class DOMHopper {
     this.setSelected(descendant);
   }
 
+  enterEditingMode() {
+    this.selected.focus();
+    this.editingMode = true;
+  }
+  exitEditingMode() {
+    this.selected.blur();
+    this.editingMode = false;
+  }
+
   leftClick() {
     if (this.selected != null) {
       console.log("left clicking");
       if (isEditable(this.selected)) {
         console.log("entering editing mode");
-        this.editingMode = true;
+        this.enterEditingMode();
       }
-      this.selected.focus();
       this.selected.click();
     }
   }
   rightClick() {
     if (this.selected != null) {
       console.log("right clicking");
+      if (this.editingMode) {
+        console.log("exitin editing mode");
+        this.exitEditingMode();
+      }
       this.selected.blur();
       this.selected.contextmenu();
     }

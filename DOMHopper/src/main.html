@@ -39,7 +39,7 @@
     </div>
     <div class="window">
       <p>I am a also a window!</p>
-      <input type="text" value="type here daddy" />
+      <input type="text" />
     </div>
     <div class="window">
       <p>I am a window!</p>
@@ -59,6 +59,7 @@
       const RIGHT_CLICK = "enter";
       const INC = "Shift";
       const DEC = "Control";
+      const ESC = "escape";
       const DEFAULT_MODE = "DefaultMode";
       const EDITING_MODE = "EditingMode";
 
@@ -81,13 +82,15 @@
       navControls.defWord([LEFT_CLICK], () => domHopper.leftClick());
       navControls.defWord([RIGHT_CLICK], () => domHopper.rightClick());
 
-      var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE]);
+      var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE, ESC]);
       modeControls.defWord([DEFAULT_MODE], (input, event) => {
-        console.log("preventing default");
         event.preventDefault();
         navControls.read(input);
       });
       modeControls.defWord([EDITING_MODE], () => {});
+      modeControls.defWord([ESC, EDITING_MODE], () =>
+        domHopper.exitEditingMode()
+      );
 
       document.addEventListener("keydown", function (event) {
         let input = parseKeyEvent(event);
