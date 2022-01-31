@@ -54,3 +54,8 @@ export function isEditable(element) {
       return false;
   }
 }
+
+export function isLink(element) {
+  if (element.nodeName == "A") return true;
+  return false;
+}

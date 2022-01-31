@@ -5,6 +5,7 @@ import {
   excludeScripts,
   getScreenPos,
   isEditable,
+  isLink,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
@@ -140,15 +141,24 @@ export default class DOMHopper {
       this.selected.click();
     }
   }
+  ctrlLeftClick() {
+    if (this.selected != null) {
+      this.selected.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
+    }
+  }
   rightClick() {
     if (this.selected != null) {
       console.log("right clicking");
-      if (this.editingMode) {
-        console.log("exitin editing mode");
-        this.exitEditingMode();
+      if (isLink(this.selected)) {
+        this.ctrlLeftClick();
+      } else {
+        if (this.editingMode) {
+          console.log("exitin editing mode");
+          this.exitEditingMode();
+        }
+        this.selected.blur();
+        this.selected.contextmenu();
       }
-      this.selected.blur();
-      this.selected.contextmenu();
     }
   }
 }
