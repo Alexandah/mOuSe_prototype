@@ -45,7 +45,9 @@
       <div class="block" onclick="alert('YEET!')"><p>Click me!</p></div>
       <div class="block"><p>I am a block</p></div>
       <div class="block"><p>I am a block</p></div>
-      <div class="block"><p>I am a block</p></div>
+      <div class="block" oncontextmenu="alert('YOU HAVE RIGHT CLICKED')">
+        <p>Rite clix 0wnLi!</p>
+      </div>
       <div class="block"><p>I am a block</p></div>
     </div>
     <div class="window">
@@ -106,8 +108,8 @@
       const DOWN = "j";
       const LEFT = "h";
       const RIGHT = "l";
-      const LEFT_CLICK = " ";
-      const RIGHT_CLICK = "enter";
+      const PRIMARY_CLICK = " ";
+      const SECONDARY_CLICK = "enter";
       const INC = "Shift";
       const DEC = "Control";
       const ESC = "escape";
@@ -119,8 +121,8 @@
         DOWN,
         LEFT,
         RIGHT,
-        LEFT_CLICK,
-        RIGHT_CLICK,
+        PRIMARY_CLICK,
+        SECONDARY_CLICK,
         INC,
         DEC,
       ]);
@@ -130,8 +132,8 @@
       navControls.defWord([LEFT], () => domHopper.jumpLeft());
       navControls.defWord([INC], () => domHopper.moveSelectionLvlUp());
       navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
-      navControls.defWord([LEFT_CLICK], () => domHopper.leftClick());
-      navControls.defWord([RIGHT_CLICK], () => domHopper.rightClick());
+      navControls.defWord([PRIMARY_CLICK], () => domHopper.primaryClick());
+      navControls.defWord([SECONDARY_CLICK], () => domHopper.secondaryClick());
 
       var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE, ESC]);
       modeControls.defWord([DEFAULT_MODE], (input, event) => {

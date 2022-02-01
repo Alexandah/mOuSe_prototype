@@ -7,6 +7,9 @@ import {
   isEditable,
   isLink,
   getOriginalPosition,
+  leftClick,
+  rightClick,
+  ctrlLeftClick,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
@@ -170,32 +173,19 @@ export default class DOMHopper {
     this.editingMode = false;
   }
 
-  leftClick() {
+  primaryClick() {
     if (this.selected != null) {
       if (isEditable(this.selected)) {
         this.enterEditingMode();
       }
-      this.selected.click();
+      leftClick(this.selected);
     }
   }
-  ctrlLeftClick() {
+  secondaryClick() {
     if (this.selected != null) {
-      this.selected.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
-    }
-  }
-  rightClick() {
-    if (this.selected != null) {
-      console.log("right clicking");
       if (isLink(this.selected)) {
-        this.ctrlLeftClick();
-      } else {
-        if (this.editingMode) {
-          this.exitEditingMode();
-        }
-        var rightClickEvent = new MouseEvent("click", { button: 2 });
-        console.log("right click event", rightClickEvent);
-        this.selected.dispatchEvent(rightClickEvent);
-      }
+        ctrlLeftClick(this.selected);
+      } else rightClick(this.selected);
     }
   }
 }

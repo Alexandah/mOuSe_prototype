@@ -65,3 +65,21 @@ export function getOriginalPosition(element) {
     element.originalPosition = getScreenPos(element);
   return element.originalPosition;
 }
+
+export function leftClick(element) {
+  element.click();
+}
+
+export function rightClick(element) {
+  var evt = new MouseEvent("contextmenu", {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    button: 2,
+  });
+  element.dispatchEvent(evt);
+}
+
+export function ctrlLeftClick(element) {
+  element.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
+}
