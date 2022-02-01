@@ -6,15 +6,19 @@ import {
   getScreenPos,
   isEditable,
   isLink,
+  getOriginalPosition,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR } from "./constants.js";
 
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
+    this.traverseDOMSubtree(this.root, (node) => {
+      getOriginalPosition(node);
+    });
     this.selected = this.root;
     this.selected.oldBorder = this.selected.style.border;
-    this.selected.style.border = "1px solid " + ORANGE_OUTLINE_COLOR;
+    this.selected.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
     this.selectedDOMLvl = 0;
     this.editingMode = false;
   }
@@ -52,8 +56,9 @@ export default class DOMHopper {
     if (element !== this.selected) element.oldBorder = element.style.border;
     if (this.selected != null)
       this.selected.style.border = this.selected.oldBorder;
-    element.style.border = "1px solid " + ORANGE_OUTLINE_COLOR;
+    element.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
     this.selected = element;
+    this.selected.scrollIntoView();
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -61,8 +66,12 @@ export default class DOMHopper {
     var closestDistance = Infinity;
     elements.forEach((element) => {
       var distance =
-        Math.abs(getScreenPos(element).x - getScreenPos(this.selected).x) +
-        Math.abs(getScreenPos(element).y - getScreenPos(this.selected).y);
+        Math.abs(
+          getOriginalPosition(element).x - getOriginalPosition(this.selected).x
+        ) +
+        Math.abs(
+          getOriginalPosition(element).y - getOriginalPosition(this.selected).y
+        );
       if (distance < closestDistance) {
         closest = element;
         closestDistance = distance;
@@ -77,27 +86,57 @@ export default class DOMHopper {
     if (this.selected != null) {
       var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
       var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
+
+      // var foundNewDestination = jumpTo !== this.selected;
+      // var nowhereElseToJump = false;
+      // var r = 1;
+      // while (!nowhereElseToJump && !foundNewDestination) {
+      //   var lvlBelow = this.selectedDOMLvl + r;
+      //   var elementsInLvlBelow = this.getDOMLvlElements(lvlBelow);
+      //   var hasElementsInLvlBelow = elementsInLvlBelow.length > 0;
+      //   if (hasElementsInLvlBelow) {
+      //     elementsInDir = elementsInLvlBelow.filter(dirFunc);
+      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
+      //     foundNewDestination = jumpTo !== this.selected;
+      //   }
+
+      //   var lvlAbove = this.selectedDOMLvl - r;
+      //   var elementsInLvlAbove = this.getDOMLvlElements(lvlAbove);
+      //   var hasElementsInLvlAbove = elementsInLvlAbove.length > 0;
+      //   if (hasElementsInLvlAbove) {
+      //     elementsInDir = elementsInLvlAbove.filter(dirFunc);
+      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
+      //     foundNewDestination = jumpTo !== this.selected;
+      //   }
+
+      //   nowhereElseToJump = !hasElementsInLvlAbove && !hasElementsInLvlBelow;
+      //   r++;
+      // }
       this.setSelected(jumpTo);
     }
   }
   jumpUp() {
     this.jump(
-      (element) => getScreenPos(element).y < getScreenPos(this.selected).y
+      (element) =>
+        getOriginalPosition(element).y < getOriginalPosition(this.selected).y
     );
   }
   jumpDown() {
     this.jump(
-      (element) => getScreenPos(element).y > getScreenPos(this.selected).y
+      (element) =>
+        getOriginalPosition(element).y > getOriginalPosition(this.selected).y
     );
   }
   jumpLeft() {
     this.jump(
-      (element) => getScreenPos(element).x < getScreenPos(this.selected).x
+      (element) =>
+        getOriginalPosition(element).x < getOriginalPosition(this.selected).x
     );
   }
   jumpRight() {
     this.jump(
-      (element) => getScreenPos(element).x > getScreenPos(this.selected).x
+      (element) =>
+        getOriginalPosition(element).x > getOriginalPosition(this.selected).x
     );
   }
 
@@ -133,9 +172,7 @@ export default class DOMHopper {
 
   leftClick() {
     if (this.selected != null) {
-      console.log("left clicking");
       if (isEditable(this.selected)) {
-        console.log("entering editing mode");
         this.enterEditingMode();
       }
       this.selected.click();
@@ -153,11 +190,11 @@ export default class DOMHopper {
         this.ctrlLeftClick();
       } else {
         if (this.editingMode) {
-          console.log("exitin editing mode");
           this.exitEditingMode();
         }
-        this.selected.blur();
-        this.selected.contextmenu();
+        var rightClickEvent = new MouseEvent("click", { button: 2 });
+        console.log("right click event", rightClickEvent);
+        this.selected.dispatchEvent(rightClickEvent);
       }
     }
   }

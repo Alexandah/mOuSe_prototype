@@ -59,3 +59,9 @@ export function isLink(element) {
   if (element.nodeName == "A") return true;
   return false;
 }
+
+export function getOriginalPosition(element) {
+  if (!element.hasOwnProperty("originalPosition"))
+    element.originalPosition = getScreenPos(element);
+  return element.originalPosition;
+}
