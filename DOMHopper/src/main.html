@@ -101,6 +101,7 @@
     <script type="module">
       import DOMHopper from "./DOMHopper.js";
       import InputLanguage from "./InputLanguage.js";
+      import KeyboardParser from "./KeyboardParser.js";
 
       var domHopper = new DOMHopper();
 
@@ -113,6 +114,42 @@
       const INC = "Shift";
       const DEC = "Control";
       const ESC = "escape";
+      const COPY = "c";
+      const R0 = "0";
+      const R1 = "1";
+      const R2 = "2";
+      const R3 = "3";
+      const R4 = "4";
+      const R5 = "5";
+      const R6 = "6";
+      const R7 = "7";
+      const R8 = "8";
+      const R9 = "9";
+      const REGISTERS = [R0, R1, R2, R3, R4, R5, R6, R7, R8, R9];
+
+      const TOKEN_ALLOWS_DUPLICATES = {
+        UP: false,
+        DOWN: false,
+        LEFT: false,
+        RIGHT: false,
+        PRIMARY_CLICK: true,
+        SECONDARY_CLICK: true,
+        INC: true,
+        DEC: true,
+        ESC: true,
+        COPY: true,
+        R0: false,
+        R1: false,
+        R2: false,
+        R3: false,
+        R4: false,
+        R5: false,
+        R6: false,
+        R7: false,
+        R8: false,
+        R9: false,
+      };
+
       const DEFAULT_MODE = "DefaultMode";
       const EDITING_MODE = "EditingMode";
 
@@ -125,6 +162,8 @@
         SECONDARY_CLICK,
         INC,
         DEC,
+        COPY,
+        ...REGISTERS,
       ]);
       navControls.defWord([UP], () => domHopper.jumpUp());
       navControls.defWord([DOWN], () => domHopper.jumpDown());
@@ -134,6 +173,16 @@
       navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
       navControls.defWord([PRIMARY_CLICK], () => domHopper.primaryClick());
       navControls.defWord([SECONDARY_CLICK], () => domHopper.secondaryClick());
+      REGISTERS.forEach((Ri) =>
+        navControls.defWord([Ri], () =>
+          domHopper.jumpToElementInRegister("r" + Ri)
+        )
+      );
+      REGISTERS.forEach((Ri) =>
+        navControls.defWord([COPY, Ri], () =>
+          domHopper.copySelectedToRegister("r" + Ri)
+        )
+      );
 
       var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE, ESC]);
       modeControls.defWord([DEFAULT_MODE], (input, event) => {
@@ -145,30 +194,46 @@
         domHopper.exitEditingMode()
       );
 
-      document.addEventListener("keydown", function (event) {
-        let input = parseKeyEvent(event);
-        console.log("found raw input: ", input);
-        modeControls.read(input, [input, event]);
-      });
-
-      function parseKeyEvent(event) {
-        var key = event.key;
-        switch (key) {
-          case "Control":
-          case "Shift":
-            key = false;
-            break;
-          default:
-            key = key.toLowerCase();
-            break;
-        }
-        var ctrl = event.ctrlKey ? "Control" : false;
-        var shift = event.shiftKey ? "Shift" : false;
+      var keyboardParser = new KeyboardParser();
+      function parseRawInputIntoControlLanguage() {
         var editingMode = domHopper.editingMode ? EDITING_MODE : false;
         var defaultMode = !editingMode ? DEFAULT_MODE : false;
-        var rawInput = [key, ctrl, shift, editingMode, defaultMode];
-        return rawInput.filter((x) => x);
+        var ctrl = keyboardParser.ctrl ? "Control" : false;
+        var shift = keyboardParser.shift ? "Shift" : false;
+        var keys = keyboardParser.keys();
+        const removeUnwantedDuplicates = (list) => {
+          var seen = {};
+          return list.filter((item) => {
+            var key = item;
+            if (TOKEN_ALLOWS_DUPLICATES[key]) {
+              return true;
+            }
+            if (seen[key]) {
+              return false;
+            }
+            seen[key] = true;
+            return true;
+          });
+        };
+        keys = removeUnwantedDuplicates(keys);
+        var tokens = [...keys, ctrl, shift, editingMode, defaultMode];
+        return tokens.filter((x) => x);
       }
+
+      document.addEventListener("keydown", (event) => {
+        console.log(
+          "keyboard parser logged: ",
+          keyboardParser,
+          " keys: ",
+          keyboardParser.keys()
+        );
+        var controlLanguageTokens = parseRawInputIntoControlLanguage();
+        console.log("found control language tokens: ", controlLanguageTokens);
+        modeControls.read(controlLanguageTokens, [
+          controlLanguageTokens,
+          event,
+        ]);
+      });
 
       console.log("Initialized DOMHopper Demo");
     </script>

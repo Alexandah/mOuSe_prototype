@@ -24,6 +24,18 @@ export default class DOMHopper {
     this.selected.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
     this.selectedDOMLvl = 0;
     this.editingMode = false;
+    this.registers = {
+      r0: null,
+      r1: null,
+      r2: null,
+      r3: null,
+      r4: null,
+      r5: null,
+      r6: null,
+      r7: null,
+      r8: null,
+      r9: null,
+    };
   }
 
   distanceFromRoot(element) {
@@ -187,5 +199,18 @@ export default class DOMHopper {
         ctrlLeftClick(this.selected);
       } else rightClick(this.selected);
     }
+  }
+
+  copySelectedToRegister(id) {
+    console.log("copying element ", this.selected, " to register ", id);
+    if (id in this.registers) this.registers[id] = this.selected;
+  }
+
+  jumpToElementInRegister(id) {
+    console.log("jumping to element in register ", id);
+    if (!(id in this.registers)) return;
+    var element = this.registers[id];
+    if (element === undefined) return;
+    this.setSelected(element);
   }
 }
