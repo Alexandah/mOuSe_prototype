@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>dankest webpage</title>
+    <style>
+      .window {
+        border: 1px solid black;
+        position: absolute;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p>Hello! Here are the controls:</p>
+    <ul>
+      <li>j ~ down</li>
+      <li>k ~ up</li>
+      <li>h ~ left</li>
+      <li>l ~ right</li>
+      <li>t ~ new window</li>
+      <li>q ~ close window</li>
+      <li>Enter ~ right click</li>
+      <li>Spacebar ~ left click</li>
+    </ul>
+
+    <script>
+      //DOM Helpers
+      class AlxndrDOM {
+        constructor() {
+          this.domLevels = {};
+          var root = this.getTag("html");
+          this.chartDOMLevels(root, 0);
+          console.log("initial domLevels: ", this.domLevels);
+        }
+
+        chartDOMLevels(parentNode, lvl) {
+          if (this.domLevels.hasOwnProperty(lvl)) {
+            this.domLevels[lvl].push(parentNode);
+          } else {
+            this.domLevels[lvl] = [parentNode];
+          }
+          if (parentNode != null) parentNode.lvl = lvl;
+
+          if (parentNode.hasChildNodes()) {
+            for (var i = 0; i < parentNode.childNodes.length; i++) {
+              this.chartDOMLevels(parentNode.childNodes[i], lvl + 1);
+            }
+          }
+        }
+
+        get(id) {
+          return document.getElementById(id);
+        }
+
+        getClass(className) {
+          return document.getElementsByClassName(className);
+        }
+
+        getTags(tagName) {
+          return document.getElementsByTagName(tagName);
+        }
+
+        getTag(tagName) {
+          return this.getTags(tagName)[0];
+        }
+
+        addElement(element, parent = document.body) {
+          parent.appendChild(element);
+          var nextLvl = parent.lvl + 1;
+          if (this.domLevels.hasOwnProperty(nextLvl)) {
+            this.domLevels[nextLvl].push(element);
+          } else {
+            this.domLevels[nextLvl] = [element];
+          }
+          element.lvl = nextLvl;
+          return element;
+        }
+
+        traverseDOMSubtree(element, callback) {
+          callback(element);
+          element.childNodes.forEach((child) => {
+            this.traverseDOMSubtree(child, callback);
+          });
+        }
+
+        removeElement(element) {
+          this.traverseDOMSubtree(element, (e) => {
+            this.domLevels[e.lvl].splice(this.domLevels[e.lvl].indexOf(e), 1);
+          });
+          var parent = element.parentNode;
+          parent.removeChild(element);
+        }
+
+        moveElement(element, newParent) {
+          newParent.appendChild(element);
+          this.traverseDOMSubtree(element, (e) => {
+            e.lvl = e.parentNode.lvl + 1;
+          });
+        }
+
+        makeDiv(parent = document.body) {
+          var div = document.createElement("div");
+          return this.addElement(div, parent);
+        }
+
+        makeP(text, parent = document.body) {
+          var p = document.createElement("p");
+          p.appendChild(document.createTextNode(text));
+          return this.addElement(p, parent);
+        }
+
+        makeInput(type, name, parent = document.body) {
+          var input = document.createElement("input");
+          input.setAttribute("type", type);
+          input.setAttribute("name", name);
+          return this.addElement(input, parent);
+        }
+      }
+      var alxdom = new AlxndrDOM();
+
+      //Entities
+      class Word {
+        constructor(tokens, semantics, orderMatters = false) {
+          this.tokens = tokens;
+          this.semantics = semantics;
+          this.orderMatters = orderMatters;
+        }
+
+        is(tokenSequence) {
+          if (!this.orderMatters) {
+            tokenSequence.forEach((t) => {
+              let isInWord = this.tokens.indexOf(t) != -1;
+              if (!isInWord) return false;
+            });
+          } else {
+            if (tokenSequence.length != self.tokens.length) return false;
+            tokenSequence.forEach((t, i) => {
+              let isInPlace = this.tokens[i] == t;
+              if (!isInPlace) return false;
+            });
+          }
+          return true;
+        }
+      }
+
+      class InputLanguage {
+        constructor(tokens) {
+          self.tokens = tokens;
+          self.wordsWithTokens = {};
+        }
+
+        defWord(tokenSequence, semantics, orderMatters = false) {
+          var key = 0;
+          tokenSequence.forEach((token) => {
+            key += token.charCodeAt();
+          });
+
+          var word = new Word(tokenSequence, semantics, orderMatters);
+
+          if (!self.wordsWithTokens.hasOwnProperty(key))
+            self.wordsWithTokens[key] = [word];
+          else self.wordsWithTokens[key].push(word);
+        }
+
+        getWord(tokenSequence) {
+          var key = 0;
+          tokenSequence.forEach((token) => {
+            key += token.charCodeAt();
+          });
+
+          if (!self.wordsWithTokens.hasOwnProperty(key)) return null;
+
+          var words = self.wordsWithTokens[key];
+          for (var i = 0; i < words.length; i++) {
+            if (words[i].is(tokenSequence)) return words[i];
+          }
+
+          return null;
+        }
+
+        read(tokenSequence) {
+          var word = this.getWord(tokenSequence);
+          if (word != null) word.semantics();
+        }
+      }
+
+      class DOMObject {
+        constructor(varsIgnoringRender = []) {
+          this.element = null;
+          this.onLeftClick = function () {};
+          this.onRightClick = function () {};
+          this.render = function () {};
+          this.destroy = function () {
+            this.element.parentElement.removeChild(this.element);
+            Object.keys(this).forEach((k) => {
+              delete this[k];
+            });
+          };
+          return new Proxy(this, {
+            set: (target, key, value) => {
+              target[key] = value;
+              switch (key) {
+                case "element":
+                  break;
+                default:
+                  let skipRender = varsIgnoringRender.indexOf(key) != -1;
+                  if (skipRender) break;
+                  this.render();
+              }
+              return true;
+            },
+          });
+        }
+      }
+
+      /*DOMObject child schema:
+      Class Thing extends DOMObject{
+        constructor(a,b,c){
+          super();
+          this.a = a;
+          this.b = b;
+          this.c = c;
+          this.element = make...(...)
+          this.render = function () {
+            this.element.style... = ...
+            ...
+          }
+          this.render();
+        }
+      }
+      */
+
+      var nextId = 0;
+      class Window extends DOMObject {
+        constructor(x, y, width, height) {
+          super();
+          this.id = nextId++;
+          this.x = x;
+          this.y = y;
+          this.width = width;
+          this.height = height;
+          this.outlineColor = BLACK_OUTLINE_COLOR;
+          this.element = alxdom.makeDiv();
+          this.element.setAttribute("class", "window");
+          this.render = function () {
+            this.element.style.left = this.x + "px";
+            this.element.style.top = this.y + "px";
+            this.element.style.width = this.width + "px";
+            this.element.style.height = this.height + "px";
+            this.element.style.border = "1px solid " + this.outlineColor;
+          };
+          this.render();
+        }
+      }
+
+      //Constants
+      const ORANGE_OUTLINE_COLOR = "#ffa500";
+      const BLACK_OUTLINE_COLOR = "#000000";
+      const GREEN_OUTLINE_COLOR = "#0FFF50";
+      const SCREEN_WIDTH = window.innerWidth;
+      const SCREEN_HEIGHT = window.innerHeight;
+      const DEFAULT_WINDOW_SIZE = {
+        width: SCREEN_WIDTH / 4,
+        height: SCREEN_HEIGHT / 2,
+      };
+      const TOKENS = {
+        UP: "k",
+        DOWN: "j",
+        LEFT: "h",
+        RIGHT: "l",
+        LEFT_CLICK: " ",
+        RIGHT_CLICK: "enter",
+        NEW_WINDOW: "t",
+        CLOSE_WINDOW: "q",
+        INC: "Shift",
+        DEC: "Control",
+        DBL_INC: "ShiftShift",
+        DBL_DEC: "ControlControl",
+        GRAB: "g",
+        DEBUG: "b",
+      };
+
+      //Main
+      var windows = {};
+      var lastSelected = null;
+      var selected = null;
+      var selectionLvl = null;
+      var windowsOnSelectionLvl = [];
+      var grabbed = false;
+
+      var controls = new InputLanguage(Object.values(TOKENS));
+
+      controls.defWord([TOKENS.DEBUG], () => {});
+
+      controls.defWord([TOKENS.UP], () => {
+        jumpUp();
+      });
+      controls.defWord([TOKENS.DOWN], () => {
+        jumpDown();
+      });
+      controls.defWord([TOKENS.LEFT], () => {
+        jumpLeft();
+      });
+      controls.defWord([TOKENS.RIGHT], () => {
+        jumpRight();
+      });
+      controls.defWord([TOKENS.GRAB], () => {
+        toggleGrab();
+      });
+      controls.defWord([TOKENS.NEW_WINDOW], () => {
+        openWindow(0, 0);
+      });
+      controls.defWord([TOKENS.CLOSE_WINDOW], () => {
+        closeWindow(selected);
+      });
+      controls.defWord([TOKENS.LEFT_CLICK], () => {
+        selected.onLeftClick();
+      });
+      controls.defWord([TOKENS.RIGHT_CLICK], () => {
+        selected.onRightClick();
+      });
+      controls.defWord([TOKENS.INC], () => {
+        moveSelectionLvlUp();
+      });
+      controls.defWord([TOKENS.DEC], () => {
+        moveSelectionLvlDown();
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.UP], () => {
+        expandWindowUp(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.DOWN], () => {
+        expandWindowDown(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.UP], () => {
+        shrinkWindowUp(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.DOWN], () => {
+        shrinkWindowDown(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.LEFT], () => {
+        expandWindowLeft(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.INC, TOKENS.RIGHT], () => {
+        expandWindowRight(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.LEFT], () => {
+        shrinkWindowLeft(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DEC, TOKENS.RIGHT], () => {
+        shrinkWindowRight(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.UP], () => {
+        moveWindowUp(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.DOWN], () => {
+        moveWindowDown(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.LEFT], () => {
+        moveWindowLeft(selected);
+      });
+      controls.defWord([TOKENS.GRAB, TOKENS.RIGHT], () => {
+        moveWindowRight(selected);
+      });
+
+      document.addEventListener("keydown", function (event) {
+        event.preventDefault();
+        let input = parseKeyEvent(event);
+        // console.log(alxdom);
+        controls.read(input);
+      });
+
+      function parseKeyEvent(event) {
+        var key = event.key;
+        switch (key) {
+          case "Control":
+          case "Shift":
+          case "Alt":
+            key = false;
+            break;
+          case TOKENS.GRAB:
+            if (grabbed) key = false;
+            break;
+          default:
+            key = key.toLowerCase();
+            break;
+        }
+        var ctrl = event.ctrlKey ? "Control" : false;
+        var alt = event.altKey ? "Alt" : false;
+        var shift = event.shiftKey ? "Shift" : false;
+        var currentGrabToken = grabbed ? TOKENS.GRAB : false;
+        var rawInput = [key, ctrl, alt, shift, currentGrabToken];
+        return rawInput.filter((x) => x);
+      }
+
+      function setSelected(windowToSelect) {
+        if (grabbed) toggleGrab();
+        if (selected != null) selected.outlineColor = BLACK_OUTLINE_COLOR;
+        windowToSelect.outlineColor = GREEN_OUTLINE_COLOR;
+        lastSelected = selected;
+        selected = windowToSelect;
+        selectionLvl = selected.element.lvl;
+        selected.element.focus();
+      }
+      function toggleGrab() {
+        if (selected != null) {
+          grabbed = !grabbed;
+          if (grabbed) selected.outlineColor = ORANGE_OUTLINE_COLOR;
+          else selected.outlineColor = GREEN_OUTLINE_COLOR;
+        }
+      }
+
+      function moveSelectionLvlUp() {
+        if (selectionLvl <= 2) return;
+        selectionLvl--;
+        windowsOnSelectionLvl = Object.values(windows).filter(
+          (x) => x.element.lvl == selectionLvl
+        );
+        console.log("moved selectionLvl up to ", selectionLvl);
+        var parent = Object.values(windows).find(
+          (x) => x.element === selected.element.parent
+        );
+        setSelected(parent);
+      }
+
+      function moveSelectionLvlDown() {
+        if (!this.selected.element.hasChildNodes()) return;
+        selectionLvl++;
+        windowsOnSelectionLvl = Object.values(windows).filter(
+          (x) => x.element.lvl == selectionLvl
+        );
+        console.log("moved selectionLvl down to ", selectionLvl);
+        var child = Object.values(windows).find(
+          (x) => x.element === selected.element.firstChild
+        );
+        setSelected(child);
+      }
+
+      function getWindowClosestToSelectedFrom(windows) {
+        var closest = null;
+        var closestDistance = Infinity;
+        windows.forEach((window) => {
+          var distance =
+            Math.abs(window.x - selected.x) + Math.abs(window.y - selected.y);
+          if (distance < closestDistance) {
+            closest = window;
+            closestDistance = distance;
+          }
+        });
+        if (closest == null) return selected;
+        else return closest;
+      }
+
+      function jumpUp() {
+        if (selected != null) {
+          var windowsAbove = Object.values(windows).filter(
+            (window) => window.y < selected.y
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsAbove);
+          setSelected(jumpTo);
+        }
+      }
+      function jumpDown() {
+        if (selected != null) {
+          var windowsBelow = Object.values(windows).filter(
+            (window) => window.y > selected.y
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsBelow);
+          setSelected(jumpTo);
+        }
+      }
+      function jumpLeft() {
+        if (selected != null) {
+          var windowsLeft = Object.values(windows).filter(
+            (window) => window.x < selected.x
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsLeft);
+          setSelected(jumpTo);
+        }
+      }
+      function jumpRight() {
+        if (selected != null) {
+          var windowsRight = Object.values(windows).filter(
+            (window) => window.x > selected.x
+          );
+          var jumpTo = getWindowClosestToSelectedFrom(windowsRight);
+          setSelected(jumpTo);
+        }
+      }
+
+      function expandWindowUp(windowToChange) {
+        if (windowToChange.height * 2 > SCREEN_HEIGHT) return;
+        if (windowToChange.y - windowToChange.height < 0) return;
+        windowToChange.y -= windowToChange.height;
+        windowToChange.height *= 2;
+      }
+      function expandWindowDown(windowToChange) {
+        if (windowToChange.height * 2 > SCREEN_HEIGHT) return;
+        windowToChange.height *= 2;
+      }
+      function expandWindowRight(windowToChange) {
+        if (windowToChange.width * 2 > SCREEN_WIDTH) return;
+        windowToChange.width *= 2;
+      }
+      function expandWindowLeft(windowToChange) {
+        if (windowToChange.width * 2 > SCREEN_WIDTH) return;
+        if (windowToChange.x - windowToChange.width < 0) return;
+        windowToChange.x -= windowToChange.width;
+        windowToChange.width *= 2;
+      }
+      function shrinkWindowUp(windowToChange) {
+        windowToChange.height /= 2;
+      }
+      function shrinkWindowDown(windowToChange) {
+        windowToChange.height /= 2;
+        windowToChange.y += windowToChange.height;
+      }
+      function shrinkWindowRight(windowToChange) {
+        windowToChange.width /= 2;
+        windowToChange.x += windowToChange.width;
+      }
+      function shrinkWindowLeft(windowToChange) {
+        windowToChange.width /= 2;
+      }
+
+      function moveWindow(windowToMove, destPos) {
+        if (destPos.x < 0) destPos.x = 0;
+        if (destPos.x > SCREEN_WIDTH - windowToMove.width)
+          destPos.x = SCREEN_WIDTH - windowToMove.width;
+        if (destPos.y < 0) destPos.y = 0;
+        if (destPos.y > SCREEN_HEIGHT - windowToMove.height)
+          destPos.y = SCREEN_HEIGHT - windowToMove.height;
+        windowToMove.x = destPos.x;
+        windowToMove.y = destPos.y;
+      }
+      function moveWindowLeft(windowToMove) {
+        moveWindow(windowToMove, {
+          x: windowToMove.x - windowToMove.width,
+          y: windowToMove.y,
+        });
+      }
+      function moveWindowRight(windowToMove) {
+        moveWindow(windowToMove, {
+          x: windowToMove.x + windowToMove.width,
+          y: windowToMove.y,
+        });
+      }
+      function moveWindowUp(windowToMove) {
+        moveWindow(windowToMove, {
+          x: windowToMove.x,
+          y: windowToMove.y - windowToMove.height,
+        });
+      }
+      function moveWindowDown(windowToMove) {
+        moveWindow(windowToMove, {
+          x: windowToMove.x,
+          y: windowToMove.y + windowToMove.height,
+        });
+      }
+
+      function openWindow(x, y) {
+        var window = new Window(
+          x,
+          y,
+          DEFAULT_WINDOW_SIZE.width,
+          DEFAULT_WINDOW_SIZE.height
+        );
+        windows[window.id] = window;
+        setSelected(window);
+        console.log("all levels: ");
+        Object.values(windows).forEach((w) => {
+          console.log("window ", w, " has lvl ", w.element.lvl);
+        });
+      }
+      function closeWindow(windowToClose) {
+        if (selected === windowToClose) setSelected(lastSelected);
+        delete windows[windowToClose.id];
+        windowToClose.destroy();
+      }
+    </script>
+  </body>
+</html>

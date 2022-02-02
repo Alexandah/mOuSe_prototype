@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>DOM Hopper Demo</title>
+    <style>
+      .window {
+        border: 1px solid black;
+        padding: 10px;
+        margin: 10px;
+      }
+      .block {
+        border: 1px solid black;
+        display: inline-block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="window">
+      <p>Hello! Here are the controls:</p>
+      <ul>
+        <li>j ~ down</li>
+        <li>k ~ up</li>
+        <li>h ~ left</li>
+        <li>l ~ right</li>
+        <li>Shift ~ go up in DOMHierarchy by 1</li>
+        <li>Ctrl ~ go down in DOMHierarchy by 1</li>
+        <li>Enter ~ right click (also opens links in new tabs)</li>
+        <li>Spacebar ~ left click</li>
+      </ul>
+      <div class="window">
+        <p>I'm a pretty sexy div</p>
+      </div>
+      <div class="window">
+        <p>as am I ;)</p>
+      </div>
+      <div class="window">
+        <p>But I am the dankest div!</p>
+      </div>
+    </div>
+    <div class="window">
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block" onclick="alert('YEET!')"><p>Click me!</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block" oncontextmenu="alert('YOU HAVE RIGHT CLICKED')">
+        <p>Rite clix 0wnLi!</p>
+      </div>
+      <div class="block"><p>I am a block</p></div>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am also a window!</p>
+      <input type="text" />
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+      <a href="http://www.erandalex.com">Our creator's website</a>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+
+    <script type="module">
+      import DOMHopper from "./DOMHopper.js";
+      import InputLanguage from "./InputLanguage.js";
+
+      var domHopper = new DOMHopper();
+
+      const UP = "k";
+      const DOWN = "j";
+      const LEFT = "h";
+      const RIGHT = "l";
+      const PRIMARY_CLICK = " ";
+      const SECONDARY_CLICK = "enter";
+      const INC = "Shift";
+      const DEC = "Control";
+      const ESC = "escape";
+      const DEFAULT_MODE = "DefaultMode";
+      const EDITING_MODE = "EditingMode";
+
+      var navControls = new InputLanguage([
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+        PRIMARY_CLICK,
+        SECONDARY_CLICK,
+        INC,
+        DEC,
+      ]);
+      navControls.defWord([UP], () => domHopper.jumpUp());
+      navControls.defWord([DOWN], () => domHopper.jumpDown());
+      navControls.defWord([RIGHT], () => domHopper.jumpRight());
+      navControls.defWord([LEFT], () => domHopper.jumpLeft());
+      navControls.defWord([INC], () => domHopper.moveSelectionLvlUp());
+      navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
+      navControls.defWord([PRIMARY_CLICK], () => domHopper.primaryClick());
+      navControls.defWord([SECONDARY_CLICK], () => domHopper.secondaryClick());
+
+      var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE, ESC]);
+      modeControls.defWord([DEFAULT_MODE], (input, event) => {
+        event.preventDefault();
+        navControls.read(input);
+      });
+      modeControls.defWord([EDITING_MODE], () => {});
+      modeControls.defWord([ESC, EDITING_MODE], () =>
+        domHopper.exitEditingMode()
+      );
+
+      document.addEventListener("keydown", function (event) {
+        let input = parseKeyEvent(event);
+        console.log("found raw input: ", input);
+        modeControls.read(input, [input, event]);
+      });
+
+      function parseKeyEvent(event) {
+        var key = event.key;
+        switch (key) {
+          case "Control":
+          case "Shift":
+            key = false;
+            break;
+          default:
+            key = key.toLowerCase();
+            break;
+        }
+        var ctrl = event.ctrlKey ? "Control" : false;
+        var shift = event.shiftKey ? "Shift" : false;
+        var editingMode = domHopper.editingMode ? EDITING_MODE : false;
+        var defaultMode = !editingMode ? DEFAULT_MODE : false;
+        var rawInput = [key, ctrl, shift, editingMode, defaultMode];
+        return rawInput.filter((x) => x);
+      }
+
+      console.log("Initialized DOMHopper Demo");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "DOMHopper",
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "http-server": "^14.1.0"
+  }
+}
