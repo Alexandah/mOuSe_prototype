@@ -10,7 +10,10 @@ import {
   rightClick,
   ctrlLeftClick,
 } from "./helpers.js";
-import { ORANGE_OUTLINE_COLOR } from "./constants.js";
+import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
+
+const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
+const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
 
 export default class DOMHopper {
   constructor() {
@@ -20,9 +23,11 @@ export default class DOMHopper {
     });
     this.selected = this.root;
     this.selected.oldBorder = this.selected.style.border;
-    this.selected.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
+    this.selected.style.border = SELECTED_BORDER;
     this.selectedDOMLvl = 0;
     this.editingMode = false;
+    this.searchMode = false;
+    this.searchMatches = [];
     this.registers = {
       r0: null,
       r1: null,
@@ -70,7 +75,7 @@ export default class DOMHopper {
     if (element !== this.selected) element.oldBorder = element.style.border;
     if (this.selected != null)
       this.selected.style.border = this.selected.oldBorder;
-    element.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
+    element.style.border = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
   }
@@ -201,15 +206,68 @@ export default class DOMHopper {
   }
 
   copySelectedToRegister(id) {
-    console.log("copying element ", this.selected, " to register ", id);
     if (id in this.registers) this.registers[id] = this.selected;
   }
   jumpToElementInRegister(id) {
-    console.log("jumping to element in register ", id);
     if (!(id in this.registers)) return;
     var element = this.registers[id];
     if (element === undefined) return;
     this.selectedDOMLvl = this.distanceFromRoot(element);
     this.setSelected(element);
+  }
+
+  //SEARCH MODE
+  toggleSearchHighlight(element) {
+    if (element === this.selected) return;
+    if (element.style.border != SEARCH_HIGHLIGHT_BORDER) {
+      element.oldBorder = element.style.border;
+      element.style.border = SEARCH_HIGHLIGHT_BORDER;
+    } else {
+      element.style.border = element.oldBorder;
+    }
+  }
+
+  parseSearchString(string) {
+    var terms = string.split(" ");
+    const isElementString = (term) =>
+      term[0] == "<" && term[term.length - 1] == ">";
+    return terms.map((x) => {
+      if (isElementString(x))
+        return {
+          text: x.substring(1, x.length - 1).toUpperCase(),
+          isElementTerm: true,
+        };
+      else return { text: x, isElementTerm: false };
+    });
+  }
+
+  searchDOM(string) {
+    var searchTerms = this.parseSearchString(string);
+    this.searchMatches.forEach(element => this.toggleSearchHighlight(element))
+    this.searchMatches = [];
+
+    this.traverseDOMSubtree(this.root, (element) => {
+      var matchesAllTerms = true;
+      searchTerms.forEach((searchTerm) => {
+        if (searchTerm.isElementTerm){
+          var isDesiredElement = element.nodeName == searchTerm.text;
+          if (!isDesiredElement){
+            matchesAllTerms = false;
+            break;
+          } 
+        }
+        else{
+          //check for text matches
+        }
+      });
+      this.searchMatches.push(element)
+    });
+
+    this.searchMatches.forEach((element) => this.toggleSearchHighlight(element))
+    return this.searchMatches;
+  }
+
+  toggleSearchBar(){
+
   }
 }
