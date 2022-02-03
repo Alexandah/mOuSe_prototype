@@ -3,7 +3,6 @@ import {
   getElementChildren,
   hasElementChildren,
   excludeScripts,
-  getScreenPos,
   isEditable,
   isLink,
   getOriginalPosition,
@@ -205,12 +204,12 @@ export default class DOMHopper {
     console.log("copying element ", this.selected, " to register ", id);
     if (id in this.registers) this.registers[id] = this.selected;
   }
-
   jumpToElementInRegister(id) {
     console.log("jumping to element in register ", id);
     if (!(id in this.registers)) return;
     var element = this.registers[id];
     if (element === undefined) return;
+    this.selectedDOMLvl = this.distanceFromRoot(element);
     this.setSelected(element);
   }
 }
