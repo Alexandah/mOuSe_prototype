@@ -136,8 +136,8 @@
         [SECONDARY_CLICK]: true,
         [INC]: true,
         [DEC]: true,
-        [ESC]: true,
-        [COPY]: true,
+        [ESC]: false,
+        [COPY]: false,
         [R0]: false,
         [R1]: false,
         [R2]: false,
@@ -153,7 +153,8 @@
       const DEFAULT_MODE = "DefaultMode";
       const EDITING_MODE = "EditingMode";
 
-      var navControls = new InputLanguage([
+      //CONTROL SETTINGS
+      var controls = new InputLanguage([
         UP,
         DOWN,
         LEFT,
@@ -164,37 +165,56 @@
         DEC,
         COPY,
         ...REGISTERS,
+        ESC,
+        DEFAULT_MODE,
+        EDITING_MODE,
       ]);
-      navControls.defWord([UP], () => domHopper.jumpUp());
-      navControls.defWord([DOWN], () => domHopper.jumpDown());
-      navControls.defWord([RIGHT], () => domHopper.jumpRight());
-      navControls.defWord([LEFT], () => domHopper.jumpLeft());
-      navControls.defWord([INC], () => domHopper.moveSelectionLvlUp());
-      navControls.defWord([INC, INC], () => domHopper.goToRootSelectionLvl());
-      navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
-      navControls.defWord([PRIMARY_CLICK], () => domHopper.primaryClick());
-      navControls.defWord([SECONDARY_CLICK], () => domHopper.secondaryClick());
+
+      //NAVIGATION MODE
+      controls.defWord([DEFAULT_MODE, UP], () => domHopper.jumpUp());
+      controls.defWord([DEFAULT_MODE, DOWN], () => domHopper.jumpDown());
+      controls.defWord([DEFAULT_MODE, RIGHT], () => domHopper.jumpRight());
+      controls.defWord([DEFAULT_MODE, LEFT], () => domHopper.jumpLeft());
+      controls.defWord([DEFAULT_MODE, INC], () =>
+        domHopper.moveSelectionLvlUp()
+      );
+      controls.defWord([DEFAULT_MODE, INC, INC], () =>
+        domHopper.goToRootSelectionLvl()
+      );
+      controls.defWord([DEFAULT_MODE, DEC], () =>
+        domHopper.moveSelectionLvlDown()
+      );
+      controls.defWord([DEFAULT_MODE, PRIMARY_CLICK], () =>
+        domHopper.primaryClick()
+      );
+      controls.defWord([DEFAULT_MODE, SECONDARY_CLICK], () =>
+        domHopper.secondaryClick()
+      );
       REGISTERS.forEach((Ri) =>
-        navControls.defWord([Ri], () =>
+        controls.defWord([DEFAULT_MODE, Ri], () =>
           domHopper.jumpToElementInRegister("r" + Ri)
         )
       );
       REGISTERS.forEach((Ri) =>
-        navControls.defWord([COPY, Ri], () =>
+        controls.defWord([DEFAULT_MODE, COPY, Ri], () =>
           domHopper.copySelectedToRegister("r" + Ri)
         )
       );
 
-      var modeControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE, ESC]);
-      modeControls.defWord([DEFAULT_MODE], (input, event) => {
-        event.preventDefault();
-        navControls.read(input);
-      });
-      modeControls.defWord([EDITING_MODE], () => {});
-      modeControls.defWord([ESC, EDITING_MODE], () =>
-        domHopper.exitEditingMode()
-      );
+      //EDITOR MODE
+      controls.defWord([EDITING_MODE, ESC], () => domHopper.exitEditingMode());
 
+      //MODE SETTINGS
+      var modeSettingsControls = new InputLanguage([
+        DEFAULT_MODE,
+        EDITING_MODE,
+      ]);
+      modeSettingsControls.defWord([DEFAULT_MODE], (event) => {
+        event.preventDefault();
+      });
+      modeSettingsControls.defWord([EDITING_MODE], () => {});
+
+      //MAIN INPUT PARSER
       var keyboardParser = new KeyboardParser();
       function parseRawInputIntoControlLanguage() {
         var editingMode = domHopper.editingMode ? EDITING_MODE : false;
@@ -221,10 +241,8 @@
 
       document.addEventListener("keydown", (event) => {
         var controlLanguageTokens = parseRawInputIntoControlLanguage();
-        modeControls.read(controlLanguageTokens, [
-          controlLanguageTokens,
-          event,
-        ]);
+        modeSettingsControls.read(controlLanguageTokens, [event]);
+        controls.read(controlLanguageTokens);
       });
 
       console.log("Initialized DOMHopper Demo");
