@@ -11,6 +11,7 @@ import {
   traverseDOMSubtree,
   hasElementChildren,
   getElementChildren,
+  getScreenPos,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -20,12 +21,8 @@ const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
-    this.traverseSelectableNodesSubtree(this.root, (node) => {
-      getOriginalPosition(node);
-    });
     this.selected = this.root;
-    this.selected.oldBorder = this.selected.style.border;
-    this.selected.style.border = SELECTED_BORDER;
+    this.selected.style.outline = SELECTED_BORDER;
     this.selectedDOMLvl = 0;
     this.editingMode = false;
     this.searchMode = false;
@@ -69,13 +66,10 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
-    if (element !== this.selected) element.oldBorder = element.style.border;
-    if (this.selected != null)
-      this.selected.style.border = this.selected.oldBorder;
-    element.style.border = SELECTED_BORDER;
+    if (this.selected != null) this.selected.style.outline = 0;
+    element.style.outline = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
-    console.log(this.selected.attributes);
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -83,12 +77,8 @@ export default class DOMHopper {
     var closestDistance = Infinity;
     elements.forEach((element) => {
       var distance =
-        Math.abs(
-          getOriginalPosition(element).x - getOriginalPosition(this.selected).x
-        ) +
-        Math.abs(
-          getOriginalPosition(element).y - getOriginalPosition(this.selected).y
-        );
+        Math.abs(getScreenPos(element).x - getScreenPos(this.selected).x) +
+        Math.abs(getScreenPos(element).y - getScreenPos(this.selected).y);
       if (distance < closestDistance) {
         closest = element;
         closestDistance = distance;
@@ -224,6 +214,7 @@ export default class DOMHopper {
   enterSearchMode() {}
   exitSearchMode() {}
 
+  //fix to accomodate outline changes
   toggleSearchHighlight(element) {
     if (element === this.selected) return;
     if (element.style.border != SEARCH_HIGHLIGHT_BORDER) {
