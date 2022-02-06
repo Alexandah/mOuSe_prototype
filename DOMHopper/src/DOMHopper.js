@@ -93,32 +93,6 @@ export default class DOMHopper {
     if (this.selected != null) {
       var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
       var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-
-      // var foundNewDestination = jumpTo !== this.selected;
-      // var nowhereElseToJump = false;
-      // var r = 1;
-      // while (!nowhereElseToJump && !foundNewDestination) {
-      //   var lvlBelow = this.selectedDOMLvl + r;
-      //   var elementsInLvlBelow = this.getDOMLvlElements(lvlBelow);
-      //   var hasElementsInLvlBelow = elementsInLvlBelow.length > 0;
-      //   if (hasElementsInLvlBelow) {
-      //     elementsInDir = elementsInLvlBelow.filter(dirFunc);
-      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-      //     foundNewDestination = jumpTo !== this.selected;
-      //   }
-
-      //   var lvlAbove = this.selectedDOMLvl - r;
-      //   var elementsInLvlAbove = this.getDOMLvlElements(lvlAbove);
-      //   var hasElementsInLvlAbove = elementsInLvlAbove.length > 0;
-      //   if (hasElementsInLvlAbove) {
-      //     elementsInDir = elementsInLvlAbove.filter(dirFunc);
-      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-      //     foundNewDestination = jumpTo !== this.selected;
-      //   }
-
-      //   nowhereElseToJump = !hasElementsInLvlAbove && !hasElementsInLvlBelow;
-      //   r++;
-      // }
       this.setSelected(jumpTo);
     }
   }
