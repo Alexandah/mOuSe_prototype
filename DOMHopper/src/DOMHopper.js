@@ -78,6 +78,7 @@ export default class DOMHopper {
     element.style.border = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
+    console.log(this.selected.attributes);
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -223,6 +224,9 @@ export default class DOMHopper {
   }
 
   //SEARCH MODE
+  enterSearchMode() {}
+  exitSearchMode() {}
+
   toggleSearchHighlight(element) {
     if (element === this.selected) return;
     if (element.style.border != SEARCH_HIGHLIGHT_BORDER) {
@@ -256,17 +260,19 @@ export default class DOMHopper {
 
     this.traverseDOMSubtree(this.root, (element) => {
       var matchesAllTerms = true;
-      searchTerms.forEach((searchTerm) => {
+      for (var i = 0; i < searchTerms.length; i++) {
+        var searchTerm = searchTerms[i];
         if (searchTerm.isElementTerm) {
           var isDesiredElement = element.nodeName == searchTerm.text;
           if (!isDesiredElement) {
             matchesAllTerms = false;
+            break;
           }
         } else {
           //check for text matches
         }
-      });
-      this.searchMatches.push(element);
+      }
+      if (matchesAllTerms) this.searchMatches.push(element);
     });
 
     this.searchMatches.forEach((element) =>
@@ -276,4 +282,6 @@ export default class DOMHopper {
   }
 
   toggleSearchBar() {}
+
+  acceptMatches() {}
 }

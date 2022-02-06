@@ -6,12 +6,10 @@ class Word {
   }
 
   is(tokenSequence) {
-    console.log("testing ", tokenSequence, " against ", this.tokens);
     var isEqual = true;
     if (!this.orderMatters) {
       tokenSequence.forEach((t) => {
         let isInWord = this.tokens.indexOf(t) != -1;
-        console.log(t, isInWord);
         if (!isInWord) isEqual = false;
       });
     } else {
@@ -44,7 +42,6 @@ export default class InputLanguage {
     });
 
     var word = new Word(tokenSequence, semantics, orderMatters);
-    console.log("defWord", word);
 
     if (!this.wordsWithTokens.hasOwnProperty(key))
       this.wordsWithTokens[key] = [word];
