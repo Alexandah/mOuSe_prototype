@@ -111,8 +111,8 @@
       const RIGHT = "l";
       const PRIMARY_CLICK = " ";
       const SECONDARY_CLICK = "enter";
-      const INC = "Shift";
-      const DEC = "Control";
+      const INC = "shift";
+      const DEC = "control";
       const ESC = "escape";
       const COPY = "c";
       const R0 = "0";
@@ -128,26 +128,26 @@
       const REGISTERS = [R0, R1, R2, R3, R4, R5, R6, R7, R8, R9];
 
       const TOKEN_ALLOWS_DUPLICATES = {
-        UP: false,
-        DOWN: false,
-        LEFT: false,
-        RIGHT: false,
-        PRIMARY_CLICK: true,
-        SECONDARY_CLICK: true,
-        INC: true,
-        DEC: true,
-        ESC: true,
-        COPY: true,
-        R0: false,
-        R1: false,
-        R2: false,
-        R3: false,
-        R4: false,
-        R5: false,
-        R6: false,
-        R7: false,
-        R8: false,
-        R9: false,
+        [UP]: false,
+        [DOWN]: false,
+        [LEFT]: false,
+        [RIGHT]: false,
+        [PRIMARY_CLICK]: true,
+        [SECONDARY_CLICK]: true,
+        [INC]: true,
+        [DEC]: true,
+        [ESC]: true,
+        [COPY]: true,
+        [R0]: false,
+        [R1]: false,
+        [R2]: false,
+        [R3]: false,
+        [R4]: false,
+        [R5]: false,
+        [R6]: false,
+        [R7]: false,
+        [R8]: false,
+        [R9]: false,
       };
 
       const DEFAULT_MODE = "DefaultMode";
@@ -170,6 +170,7 @@
       navControls.defWord([RIGHT], () => domHopper.jumpRight());
       navControls.defWord([LEFT], () => domHopper.jumpLeft());
       navControls.defWord([INC], () => domHopper.moveSelectionLvlUp());
+      navControls.defWord([INC, INC], () => domHopper.goToRootSelectionLvl());
       navControls.defWord([DEC], () => domHopper.moveSelectionLvlDown());
       navControls.defWord([PRIMARY_CLICK], () => domHopper.primaryClick());
       navControls.defWord([SECONDARY_CLICK], () => domHopper.secondaryClick());
@@ -198,8 +199,6 @@
       function parseRawInputIntoControlLanguage() {
         var editingMode = domHopper.editingMode ? EDITING_MODE : false;
         var defaultMode = !editingMode ? DEFAULT_MODE : false;
-        var ctrl = keyboardParser.ctrl ? "Control" : false;
-        var shift = keyboardParser.shift ? "Shift" : false;
         var keys = keyboardParser.keys();
         const removeUnwantedDuplicates = (list) => {
           var seen = {};
@@ -216,19 +215,12 @@
           });
         };
         keys = removeUnwantedDuplicates(keys);
-        var tokens = [...keys, ctrl, shift, editingMode, defaultMode];
+        var tokens = [...keys, editingMode, defaultMode];
         return tokens.filter((x) => x);
       }
 
       document.addEventListener("keydown", (event) => {
-        console.log(
-          "keyboard parser logged: ",
-          keyboardParser,
-          " keys: ",
-          keyboardParser.keys()
-        );
         var controlLanguageTokens = parseRawInputIntoControlLanguage();
-        console.log("found control language tokens: ", controlLanguageTokens);
         modeControls.read(controlLanguageTokens, [
           controlLanguageTokens,
           event,

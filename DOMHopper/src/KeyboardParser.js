@@ -1,15 +1,11 @@
 export default class KeyboardParser {
   constructor(pressFadeTime = 200, maxDuplicatePresses = 2) {
-    this.ctrl = false;
-    this.shift = false;
-    this.alt = false;
-    this.meta = false;
     this.keysActive = {};
     this.pressFadeTime = pressFadeTime;
     this.maxDuplicatePresses = maxDuplicatePresses;
     document.addEventListener("keydown", (event) => {
-      var key = this.parseCurrentKeyEvent(event).toLowerCase();
-      this.log(key, event);
+      var keys = this.parseCurrentKeyEvent(event);
+      this.log(keys, event);
     });
   }
 
@@ -21,22 +17,24 @@ export default class KeyboardParser {
         keys.push(key);
       }
     });
-    return keys.filter((key) => key !== "null");
+    return keys;
   }
 
-  log(key, keyEvent) {
-    var keyIsInactive = !(key in this.keysActive);
-    if (keyIsInactive) {
-      this.keysActive[key] = { timesPressed: 1 };
-      this.fade(key);
-    } else {
-      var keyIsBeingHeldDown = keyEvent.repeat;
-      var keyAllowsMoreMultiPresses =
-        this.keysActive[key].timesPressed < this.maxDuplicatePresses;
-      if (!keyIsBeingHeldDown && keyAllowsMoreMultiPresses) {
-        this.keysActive[key].timesPressed++;
+  log(keys, keyEvent) {
+    keys.forEach((key) => {
+      var keyIsInactive = !(key in this.keysActive);
+      if (keyIsInactive) {
+        this.keysActive[key] = { timesPressed: 1 };
+        this.fade(key);
+      } else {
+        var keyIsBeingHeldDown = keyEvent.repeat;
+        var keyAllowsMoreMultiPresses =
+          this.keysActive[key].timesPressed < this.maxDuplicatePresses;
+        if (!keyIsBeingHeldDown && keyAllowsMoreMultiPresses) {
+          this.keysActive[key].timesPressed++;
+        }
       }
-    }
+    });
   }
 
   fade(key) {
@@ -53,22 +51,20 @@ export default class KeyboardParser {
   }
 
   parseCurrentKeyEvent(event) {
-    var key = event.key;
-    switch (key) {
-      case "Control":
-      case "Shift":
-      case "Alt":
-      case "Meta":
-        key = null;
-        break;
-      default:
-        key = key.toLowerCase();
+    var mainKey = event.key.toLowerCase();
+    var ctrl = event.ctrlKey ? "control" : false;
+    var shift = event.shiftKey ? "shift" : false;
+    var alt = event.altKey ? "alt" : false;
+    var meta = event.metaKey ? "meta" : false;
+    switch (mainKey) {
+      case ctrl:
+      case shift:
+      case alt:
+      case meta:
+        mainKey = false;
         break;
     }
-    this.ctrl = event.ctrlKey;
-    this.shift = event.shiftKey;
-    this.alt = event.altKey;
-    this.meta = event.metaKey;
-    return key;
+    var currentKeysDown = [mainKey, ctrl, shift, alt, meta].filter((x) => x);
+    return currentKeysDown;
   }
 }

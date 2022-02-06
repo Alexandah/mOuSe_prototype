@@ -180,6 +180,12 @@ export default class DOMHopper {
     this.setSelected(descendant);
   }
 
+  goToRootSelectionLvl() {
+    if (this.editingMode) return;
+    this.selectedDOMLvl = 0;
+    this.setSelected(this.root);
+  }
+
   enterEditingMode() {
     this.selected.focus();
     this.editingMode = true;
@@ -243,31 +249,31 @@ export default class DOMHopper {
 
   searchDOM(string) {
     var searchTerms = this.parseSearchString(string);
-    this.searchMatches.forEach(element => this.toggleSearchHighlight(element))
+    this.searchMatches.forEach((element) =>
+      this.toggleSearchHighlight(element)
+    );
     this.searchMatches = [];
 
     this.traverseDOMSubtree(this.root, (element) => {
       var matchesAllTerms = true;
       searchTerms.forEach((searchTerm) => {
-        if (searchTerm.isElementTerm){
+        if (searchTerm.isElementTerm) {
           var isDesiredElement = element.nodeName == searchTerm.text;
-          if (!isDesiredElement){
+          if (!isDesiredElement) {
             matchesAllTerms = false;
-            break;
-          } 
-        }
-        else{
+          }
+        } else {
           //check for text matches
         }
       });
-      this.searchMatches.push(element)
+      this.searchMatches.push(element);
     });
 
-    this.searchMatches.forEach((element) => this.toggleSearchHighlight(element))
+    this.searchMatches.forEach((element) =>
+      this.toggleSearchHighlight(element)
+    );
     return this.searchMatches;
   }
 
-  toggleSearchBar(){
-
-  }
+  toggleSearchBar() {}
 }
