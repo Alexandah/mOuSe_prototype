@@ -22,18 +22,24 @@ export function getScreenPos(element) {
   };
 }
 
+export function isElement(node) {
+  return node.nodeType == 1;
+}
+
 export function getElementChildren(element) {
-  return Array.from(element.childNodes).filter((node) => node.nodeType == 1);
+  return Array.from(element.childNodes).filter((node) => isElement(node));
 }
 
 export function hasElementChildren(element) {
   return getElementChildren(element).length > 0;
 }
 
+export function isScript(node) {
+  return node instanceof HTMLScriptElement;
+}
+
 export function excludeScripts(elementList) {
-  return Array.from(elementList).filter(
-    (node) => !(node instanceof HTMLScriptElement)
-  );
+  return Array.from(elementList).filter((node) => !isScript(node));
 }
 
 export function getKeyContainingX(obj, X) {
@@ -82,4 +88,18 @@ export function rightClick(element) {
 
 export function ctrlLeftClick(element) {
   element.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
+}
+
+export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
+  func(node);
+  if (node.hasChildNodes())
+    Array.from(node.childNodes)
+      .filter(filterChildrenBy)
+      .forEach((child) => {
+        traverseDOMSubtree(child, func, filterChildrenBy);
+      });
+}
+
+export function traverseElementsInDOMSubtree(node, func) {
+  traverseDOMSubtree(node, func, (x) => isElement(x));
 }

@@ -1,14 +1,16 @@
 import {
   getTag,
-  getElementChildren,
-  hasElementChildren,
-  excludeScripts,
+  isScript,
+  isElement,
   isEditable,
   isLink,
   getOriginalPosition,
   leftClick,
   rightClick,
   ctrlLeftClick,
+  traverseDOMSubtree,
+  hasElementChildren,
+  getElementChildren,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -18,7 +20,7 @@ const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
-    this.traverseDOMSubtree(this.root, (node) => {
+    this.traverseSelectableNodesSubtree(this.root, (node) => {
       getOriginalPosition(node);
     });
     this.selected = this.root;
@@ -48,13 +50,8 @@ export default class DOMHopper {
     else return 1 + this.distanceFromRoot(element.parentElement);
   }
 
-  traverseDOMSubtree(node, func) {
-    func(node);
-    if (hasElementChildren(node)) {
-      excludeScripts(getElementChildren(node)).forEach((child) => {
-        this.traverseDOMSubtree(child, func);
-      });
-    }
+  traverseSelectableNodesSubtree(node, func) {
+    traverseDOMSubtree(node, func, (x) => !isScript(x) && isElement(x));
   }
 
   getDOMLvlElements(lvl) {
@@ -62,7 +59,7 @@ export default class DOMHopper {
     const grabIfOnSelectedDOMLvl = (node) => {
       if (this.distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
     };
-    this.traverseDOMSubtree(this.root, grabIfOnSelectedDOMLvl);
+    this.traverseSelectableNodesSubtree(this.root, grabIfOnSelectedDOMLvl);
     return selectedDOMLvlElements;
   }
 
@@ -258,7 +255,7 @@ export default class DOMHopper {
     );
     this.searchMatches = [];
 
-    this.traverseDOMSubtree(this.root, (element) => {
+    this.traverseSelectableNodesSubtree(this.root, (element) => {
       var matchesAllTerms = true;
       for (var i = 0; i < searchTerms.length; i++) {
         var searchTerm = searchTerms[i];
