@@ -1,3 +1,5 @@
+import { SEMANTIC_NODES } from "./constants.js";
+
 export function get(id) {
   return document.getElementById(id);
 }
@@ -102,4 +104,42 @@ export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
 
 export function traverseElementsInDOMSubtree(node, func) {
   traverseDOMSubtree(node, func, (x) => isElement(x));
+}
+
+export function isSemantic(node) {
+  return node.nodeName in SEMANTIC_NODES;
+}
+
+export function makeSemanticDOMTree(root) {
+  if (!isSemantic(root)) return null;
+
+  function SemanticDOMNode(node) {
+    this.node = node;
+    this.parent = null;
+    this.children = [];
+  }
+
+  var semanticDOMRoot = null;
+  function makeSemanticDOMSubtree(node, lastSemanticAncestor) {
+    var semanticNode;
+    if (isSemantic(node)) {
+      semanticNode = new SemanticDOMNode(node);
+      if (semanticDOMRoot == null) {
+        semanticDOMRoot = semanticNode;
+        lastSemanticAncestor = semanticDOMRoot;
+      } else {
+        semanticNode.parent = lastSemanticAncestor;
+        semanticNode.parent.children.push(semanticNode);
+      }
+    }
+    if (node.hasChildNodes())
+      Array.from(node.childNodes).forEach((child) => {
+        makeSemanticDOMSubtree(
+          child,
+          isSemantic(node) ? semanticNode : lastSemanticAncestor
+        );
+      });
+  }
+  makeSemanticDOMSubtree(root, null);
+  return semanticDOMRoot;
 }

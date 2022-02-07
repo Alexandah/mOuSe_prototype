@@ -126,6 +126,7 @@
       const R8 = "8";
       const R9 = "9";
       const REGISTERS = [R0, R1, R2, R3, R4, R5, R6, R7, R8, R9];
+      const DEBUG = "alt";
 
       const TOKEN_ALLOWS_DUPLICATES = {
         [UP]: false,
@@ -148,6 +149,7 @@
         [R7]: false,
         [R8]: false,
         [R9]: false,
+        [DEBUG]: false,
       };
 
       const DEFAULT_MODE = "DefaultMode";
@@ -168,6 +170,7 @@
         ESC,
         DEFAULT_MODE,
         EDITING_MODE,
+        DEBUG,
       ]);
 
       //NAVIGATION MODE
@@ -199,6 +202,10 @@
         controls.defWord([DEFAULT_MODE, COPY, Ri], () =>
           domHopper.copySelectedToRegister("r" + Ri)
         )
+      );
+      //debug
+      controls.defWord([DEFAULT_MODE, DEBUG], () =>
+        domHopper.testSemanticDOMTree()
       );
 
       //EDITOR MODE
@@ -241,6 +248,7 @@
 
       document.addEventListener("keydown", (event) => {
         var controlLanguageTokens = parseRawInputIntoControlLanguage();
+        console.log("control tokens :", controlLanguageTokens);
         modeSettingsControls.read(controlLanguageTokens, [event]);
         controls.read(controlLanguageTokens);
       });

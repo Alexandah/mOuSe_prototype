@@ -12,6 +12,8 @@ import {
   hasElementChildren,
   getElementChildren,
   getScreenPos,
+  isSemantic,
+  makeSemanticDOMTree,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -41,6 +43,11 @@ export default class DOMHopper {
     };
   }
 
+  testSemanticDOMTree() {
+    var semanticDOMTree = makeSemanticDOMTree(this.root);
+    console.log(semanticDOMTree);
+  }
+
   distanceFromRoot(element) {
     if (element === undefined) return 0;
     if (element === this.root) return 0;
@@ -48,6 +55,8 @@ export default class DOMHopper {
   }
 
   traverseSelectableNodesSubtree(node, func) {
+    var lastSemanticAncestor = null;
+    var semanticTree;
     traverseDOMSubtree(node, func, (x) => !isScript(x) && isElement(x));
   }
 
