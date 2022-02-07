@@ -14,6 +14,7 @@ import {
   getScreenPos,
   isSemantic,
   makeSemanticDOMTree,
+  isTextNode,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -48,16 +49,29 @@ export default class DOMHopper {
     console.log(semanticDOMTree);
   }
 
-  distanceFromRoot(element) {
-    if (element === undefined) return 0;
-    if (element === this.root) return 0;
-    else return 1 + this.distanceFromRoot(element.parentElement);
+  isSelectable(node) {
+    if (isSemantic(node)) return true;
+    if (node.hasChildNodes()) {
+      var qualifyingChildren = Array.from(node.childNodes).filter(
+        (node) => isSemantic(node) || isTextNode(node)
+      );
+      var hasQualifyingChildren = qualifyingChildren.length > 0;
+      return hasQualifyingChildren;
+    }
+    return false;
+  }
+
+  distanceFromRoot(node) {
+    if (node === undefined) return 0;
+    if (node === this.root) return 0;
+    else {
+      var x = this.isSelectable(node) ? 1 : 0;
+      return x + this.distanceFromRoot(node.parentNode);
+    }
   }
 
   traverseSelectableNodesSubtree(node, func) {
-    var lastSemanticAncestor = null;
-    var semanticTree;
-    traverseDOMSubtree(node, func, (x) => !isScript(x) && isElement(x));
+    traverseDOMSubtree(node, func, this.isSelectable);
   }
 
   getDOMLvlElements(lvl) {
@@ -107,27 +121,47 @@ export default class DOMHopper {
   }
   jumpUp() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).y < getOriginalPosition(this.selected).y
+      (element) => getScreenPos(element).y < getScreenPos(this.selected).y
     );
   }
   jumpDown() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).y > getOriginalPosition(this.selected).y
+      (element) => getScreenPos(element).y > getScreenPos(this.selected).y
     );
   }
   jumpLeft() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).x < getOriginalPosition(this.selected).x
+      (element) => getScreenPos(element).x < getScreenPos(this.selected).x
     );
   }
   jumpRight() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).x > getOriginalPosition(this.selected).x
+      (element) => getScreenPos(element).x > getScreenPos(this.selected).x
     );
+  }
+
+  getNearestSelectableAncestor(node) {
+    if (node == null) return null;
+    var parent = node.parentNode;
+    if (this.isSelectable(parent)) return parent;
+    return this.getNearestSelectableAncestor(parent);
+  }
+  getNearestSelectableDescendant(node) {
+    if (node == null) return null;
+    if (node.hasChildNodes()) {
+      var children = node.childNodes;
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        if (this.isSelectable(child)) return child;
+      }
+
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        var selectableDescendant = this.getNearestSelectableDescendant(child);
+        if (selectableDescendant != null) return selectableDescendant;
+      }
+    }
+    return null;
   }
 
   moveSelectionLvlUp() {
@@ -135,7 +169,7 @@ export default class DOMHopper {
     let atTop = this.selected === this.root;
     if (atTop) return;
     this.selectedDOMLvl--;
-    var parent = this.selected.parentElement;
+    var parent = this.getNearestSelectableAncestor(this.selected);
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
@@ -144,9 +178,14 @@ export default class DOMHopper {
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
-    var selectedHasChild = hasElementChildren(this.selected);
-    var descendant = selectedHasChild
-      ? getElementChildren(this.selected)[0]
+    var nearestSelectableDesecendant = this.getNearestSelectableDescendant(
+      this.selected
+    );
+    var selectableDescendantIsOnCorrectDOMLvl =
+      this.distanceFromRoot(nearestSelectableDesecendant) ==
+      this.selectedDOMLvl;
+    var descendant = selectableDescendantIsOnCorrectDOMLvl
+      ? nearestSelectableDesecendant
       : nextDOMLvlElements[this.selectedDOMLvl][0];
     this.setSelected(descendant);
   }

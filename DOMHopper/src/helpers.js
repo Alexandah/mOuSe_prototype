@@ -93,13 +93,11 @@ export function ctrlLeftClick(element) {
 }
 
 export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
-  func(node);
+  if (filterChildrenBy(node)) func(node);
   if (node.hasChildNodes())
-    Array.from(node.childNodes)
-      .filter(filterChildrenBy)
-      .forEach((child) => {
-        traverseDOMSubtree(child, func, filterChildrenBy);
-      });
+    Array.from(node.childNodes).forEach((child) => {
+      traverseDOMSubtree(child, func, filterChildrenBy);
+    });
 }
 
 export function traverseElementsInDOMSubtree(node, func) {
@@ -142,4 +140,8 @@ export function makeSemanticDOMTree(root) {
   }
   makeSemanticDOMSubtree(root, null);
   return semanticDOMRoot;
+}
+
+export function isTextNode(node) {
+  return node.nodeType == 3;
 }
