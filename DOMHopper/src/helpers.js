@@ -8,12 +8,55 @@ export function getClass(className) {
   return document.getElementsByClassName(className);
 }
 
+export function getChildrenWithClass(node, className) {
+  if (node.hasChildNodes()) {
+    var children = Array.from(node.childNodes);
+    var matchingChildren = children.filter(
+      (child) => child.className == className
+    );
+    return matchingChildren;
+  }
+  return null;
+}
+
+export function getChildWithClass(node, className) {
+  return getChildrenWithClass(node, className)[0];
+}
+
 export function getTags(tagName) {
   return document.getElementsByTagName(tagName);
 }
 
 export function getTag(tagName) {
   return getTags(tagName)[0];
+}
+
+export function addNode(node, parent = document.body) {
+  parent.appendChild(node);
+  return node;
+}
+
+export function removeNode(node) {
+  var parent = node.parentNode;
+  parent.removeChild(node);
+}
+
+export function makeDiv(parent = document.body) {
+  var div = document.createElement("div");
+  return addNode(div, parent);
+}
+
+export function makeP(text, parent = document.body) {
+  var p = document.createElement("p");
+  p.appendChild(document.createTextNode(text));
+  return addNode(p, parent);
+}
+
+export function makeInput(type, name, parent = document.body) {
+  var input = document.createElement("input");
+  input.setAttribute("type", type);
+  input.setAttribute("name", name);
+  return addNode(input, parent);
 }
 
 export function getScreenPos(element) {

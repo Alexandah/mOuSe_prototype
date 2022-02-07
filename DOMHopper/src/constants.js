@@ -1,6 +1,7 @@
 export const ORANGE_OUTLINE_COLOR = "#ffa500";
 export const BLACK_OUTLINE_COLOR = "#000000";
 export const GREEN_OUTLINE_COLOR = "#0FFF50";
+export const STICKY_NOTE_BACKGROUND_COLOR = "#EDD88C";
 export const SEMANTIC_NODES = {
   BODY: "<body>",
   H1: "<h1>",

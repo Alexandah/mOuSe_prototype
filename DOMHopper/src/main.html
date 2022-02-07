@@ -12,11 +12,18 @@
         border: 1px solid black;
         display: inline-block;
       }
+      .registerNote {
+        border: 1px solid black;
+        background-color: #edd88c;
+        display: inline-block;
+        padding: 7px;
+      }
     </style>
   </head>
 
   <body>
     <div class="window">
+      <!-- <p class="registerNote">1</p> -->
       <p>Hello! Here are the controls:</p>
       <ul>
         <li>j ~ down</li>
@@ -204,9 +211,7 @@
         )
       );
       //debug
-      controls.defWord([DEFAULT_MODE, DEBUG], () =>
-        domHopper.testSemanticDOMTree()
-      );
+      controls.defWord([DEFAULT_MODE, DEBUG], () => {});
 
       //EDITOR MODE
       controls.defWord([EDITING_MODE, ESC], () => domHopper.exitEditingMode());

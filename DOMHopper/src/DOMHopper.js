@@ -1,20 +1,17 @@
 import {
   getTag,
-  isScript,
-  isElement,
   isEditable,
   isLink,
-  getOriginalPosition,
   leftClick,
   rightClick,
   ctrlLeftClick,
   traverseDOMSubtree,
-  hasElementChildren,
-  getElementChildren,
   getScreenPos,
   isSemantic,
-  makeSemanticDOMTree,
   isTextNode,
+  makeP,
+  removeNode,
+  getChildrenWithClass,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -42,11 +39,6 @@ export default class DOMHopper {
       r8: null,
       r9: null,
     };
-  }
-
-  testSemanticDOMTree() {
-    var semanticDOMTree = makeSemanticDOMTree(this.root);
-    console.log(semanticDOMTree);
   }
 
   isSelectable(node) {
@@ -221,8 +213,26 @@ export default class DOMHopper {
     }
   }
 
+  attachRegisterMarker(node, id) {
+    var registerNumber = id[1];
+    var stickyNote = makeP(registerNumber, node);
+    stickyNote.setAttribute("class", "registerNote");
+  }
+  detachRegisterMarker(node, id) {
+    var registerNumber = id[1];
+    var markerToDetach = getChildrenWithClass(node, "registerNote").filter(
+      (child) => child.innerText == registerNumber
+    )[0];
+    removeNode(markerToDetach);
+  }
+
   copySelectedToRegister(id) {
-    if (id in this.registers) this.registers[id] = this.selected;
+    if (id in this.registers) {
+      if (this.registers[id] != null)
+        this.detachRegisterMarker(this.registers[id], id);
+      this.registers[id] = this.selected;
+      this.attachRegisterMarker(this.selected, id);
+    }
   }
   jumpToElementInRegister(id) {
     if (!(id in this.registers)) return;
