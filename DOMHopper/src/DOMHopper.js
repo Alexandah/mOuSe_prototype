@@ -9,9 +9,10 @@ import {
   getScreenPos,
   isSemantic,
   isTextNode,
-  makeP,
+  makeSpan,
   removeNode,
   getChildrenWithClass,
+  getChildWithClass,
 } from "./helpers.js";
 import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
 
@@ -214,15 +215,33 @@ export default class DOMHopper {
   }
 
   attachRegisterMarker(node, id) {
+    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
+    console.log(
+      "checking for noteholder ",
+      getChildrenWithClass(node, "noteHolder")
+    );
+    var noteHolder;
+    if (!hasNoteHolder) {
+      console.log("hasNoteHolder");
+      noteHolder = makeSpan("", node);
+      noteHolder.setAttribute("class", "noteHolder");
+    } else {
+      noteHolder = getChildWithClass(node, "noteHolder");
+    }
+    console.log("noteHolder", noteHolder);
     var registerNumber = id[1];
-    var stickyNote = makeP(registerNumber, node);
+    var stickyNote = makeSpan(registerNumber, noteHolder);
     stickyNote.setAttribute("class", "registerNote");
   }
   detachRegisterMarker(node, id) {
     var registerNumber = id[1];
-    var markerToDetach = getChildrenWithClass(node, "registerNote").filter(
-      (child) => child.innerText == registerNumber
-    )[0];
+    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
+    if (!hasNoteHolder) return;
+    var noteHolder = getChildWithClass(node, "noteHolder");
+    var markerToDetach = getChildrenWithClass(
+      noteHolder,
+      "registerNote"
+    ).filter((child) => child.innerText == registerNumber)[0];
     removeNode(markerToDetach);
   }
 
