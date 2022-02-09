@@ -26,9 +26,23 @@
         top: 0;
         left: 0;
       }
+      .searchBar {
+        border: 3px solid black;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 99;
+        width: 50%;
+        height: 5%;
+        opacity: 0.9;
+        text-align: center;
+        background-color: #c7dcff;
+      }
     </style>
   </head>
   <body>
+    <!-- <input class="searchBar" /> -->
     <div class="window">
       <p>Hello! Here are the controls:</p>
       <ul>
@@ -128,6 +142,7 @@
       const DEC = "control";
       const ESC = "escape";
       const COPY = "c";
+      const FIND = "f";
       const R0 = "0";
       const R1 = "1";
       const R2 = "2";
@@ -152,6 +167,7 @@
         [DEC]: true,
         [ESC]: false,
         [COPY]: false,
+        [FIND]: false,
         [R0]: false,
         [R1]: false,
         [R2]: false,
@@ -167,6 +183,7 @@
 
       const DEFAULT_MODE = "DefaultMode";
       const EDITING_MODE = "EditingMode";
+      const SEARCH_MODE = "SearchMode";
 
       //CONTROL SETTINGS
       var controls = new InputLanguage([
@@ -179,10 +196,12 @@
         INC,
         DEC,
         COPY,
+        FIND,
         ...REGISTERS,
         ESC,
         DEFAULT_MODE,
         EDITING_MODE,
+        SEARCH_MODE,
         DEBUG,
       ]);
 
@@ -216,11 +235,37 @@
           domHopper.copySelectedToRegister("r" + Ri)
         )
       );
+      controls.defWord([DEFAULT_MODE, FIND], () => domHopper.enterSearchMode());
+
       //debug
-      controls.defWord([DEFAULT_MODE, DEBUG], () => {});
+      controls.defWord([DEFAULT_MODE, DEBUG], () => {
+        domHopper.openSearchBar();
+      });
 
       //EDITOR MODE
       controls.defWord([EDITING_MODE, ESC], () => domHopper.exitEditingMode());
+
+      //SEARCH MODE
+      controls.defWord([SEARCH_MODE, ESC], () => domHopper.exitSearchMode());
+      controls.defWord([SEARCH_MODE, EDITING_MODE, ESC], () =>
+        domHopper.exitSearchMode()
+      );
+      controls.defWord([SEARCH_MODE, SECONDARY_CLICK], () =>
+        domHopper.acceptMatch()
+      );
+      controls.defWord([SEARCH_MODE, EDITING_MODE, SECONDARY_CLICK], () =>
+        domHopper.acceptMatch()
+      );
+      controls.defWord([SEARCH_MODE, UP], () => domHopper.jumpUp());
+      controls.defWord([SEARCH_MODE, DOWN], () => domHopper.jumpDown());
+      controls.defWord([SEARCH_MODE, RIGHT], () => domHopper.jumpRight());
+      controls.defWord([SEARCH_MODE, LEFT], () => domHopper.jumpLeft());
+      controls.defWord([SEARCH_MODE, INC], () =>
+        domHopper.moveSelectionLvlUp()
+      );
+      controls.defWord([SEARCH_MODE, DEC], () =>
+        domHopper.moveSelectionLvlDown()
+      );
 
       //MODE SETTINGS
       var modeSettingsControls = new InputLanguage([
@@ -231,12 +276,18 @@
         event.preventDefault();
       });
       modeSettingsControls.defWord([EDITING_MODE], () => {});
+      modeSettingsControls.defWord([SEARCH_MODE], (event) => {
+        event.preventDefault();
+      });
+      modeSettingsControls.defWord([SEARCH_MODE, EDITING_MODE], () => {});
 
       //MAIN INPUT PARSER
       var keyboardParser = new KeyboardParser();
       function parseRawInputIntoControlLanguage() {
         var editingMode = domHopper.editingMode ? EDITING_MODE : false;
-        var defaultMode = !editingMode ? DEFAULT_MODE : false;
+        var searchMode = domHopper.searchMode ? SEARCH_MODE : false;
+        var defaultMode = !editingMode && !searchMode ? DEFAULT_MODE : false;
+        var modes = [defaultMode, editingMode, searchMode];
         var keys = keyboardParser.keys();
         const removeUnwantedDuplicates = (list) => {
           var seen = {};
@@ -253,10 +304,11 @@
           });
         };
         keys = removeUnwantedDuplicates(keys);
-        var tokens = [...keys, editingMode, defaultMode];
+        var tokens = [...keys, ...modes];
         return tokens.filter((x) => x);
       }
 
+      //MAIN INPUT LISTENER
       document.addEventListener("keydown", (event) => {
         var controlLanguageTokens = parseRawInputIntoControlLanguage();
         console.log("control tokens :", controlLanguageTokens);

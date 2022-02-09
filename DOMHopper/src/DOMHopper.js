@@ -11,6 +11,7 @@ import {
   isTextNode,
   isElement,
   makeSpan,
+  makeInput,
   removeNode,
   getChildrenWithClass,
   getChildWithClass,
@@ -45,9 +46,10 @@ export default class DOMHopper {
       r8: null,
       r9: null,
     };
+    this.isSelectable = this.isSelectableDefault;
   }
 
-  isSelectable(node) {
+  isSelectableDefault(node) {
     if (isElement(node))
       if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
     if (isSemantic(node)) return true;
@@ -59,6 +61,10 @@ export default class DOMHopper {
       return hasQualifyingChildren;
     }
     return false;
+  }
+
+  isSelectableSearch(node) {
+    return this.searchMatches.includes(node);
   }
 
   distanceFromRoot(node) {
@@ -89,7 +95,13 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
-    if (this.selected != null) this.selected.style.outline = 0;
+    if (element.style.outline == SEARCH_HIGHLIGHT_BORDER)
+      element.oldOutline = SEARCH_HIGHLIGHT_BORDER;
+    else element.oldOutline = 0;
+    if (this.selected != null)
+      if ("oldOutline" in this.selected)
+        this.selected.style.outline = this.selected.oldOutline;
+      else this.selected.style.outline = 0;
     element.style.outline = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
@@ -268,18 +280,32 @@ export default class DOMHopper {
   }
 
   //SEARCH MODE
-  enterSearchMode() {}
-  exitSearchMode() {}
+  enterSearchMode() {
+    this.searchMode = true;
+    this.openSearchBar();
+  }
 
-  //fix to accomodate outline changes
-  toggleSearchHighlight(element) {
+  openSearchBar() {
+    var searchBar = makeInput("text", "Search Bar");
+    searchBar.setAttribute("class", "searchBar");
+    searchBar.addEventListener("input", (event) => this.searchDOM(event.data));
+    this.setSelected(searchBar);
+    this.enterEditingMode();
+  }
+  closeSearchBar() {
+    this.exitEditingMode();
+    var searchBar = getClass("searchBar")[0];
+    removeNode(searchBar);
+  }
+
+  turnOnSearchHighlight(element) {
     if (element === this.selected) return;
-    if (element.style.border != SEARCH_HIGHLIGHT_BORDER) {
-      element.oldBorder = element.style.border;
-      element.style.border = SEARCH_HIGHLIGHT_BORDER;
-    } else {
-      element.style.border = element.oldBorder;
-    }
+    element.style.oldOutline = element.style.outline;
+    element.style.outline = SEARCH_HIGHLIGHT_BORDER;
+  }
+  turnOffSearchHighlight(element) {
+    if (element === this.selected) return;
+    element.style.outline = element.style.oldOutline;
   }
 
   parseSearchString(string) {
@@ -299,7 +325,7 @@ export default class DOMHopper {
   searchDOM(string) {
     var searchTerms = this.parseSearchString(string);
     this.searchMatches.forEach((element) =>
-      this.toggleSearchHighlight(element)
+      this.turnOffSearchHighlight(element)
     );
     this.searchMatches = [];
 
@@ -315,18 +341,41 @@ export default class DOMHopper {
           }
         } else {
           //check for text matches
+          var hasTerm = element.innerText.indexOf(searchTerm.text) != -1;
+          if (!hasTerm) {
+            matchesAllTerms = false;
+            break;
+          }
         }
       }
       if (matchesAllTerms) this.searchMatches.push(element);
     });
 
     this.searchMatches.forEach((element) =>
-      this.toggleSearchHighlight(element)
+      this.turnOnSearchHighlight(element)
     );
     return this.searchMatches;
   }
 
-  toggleSearchBar() {}
+  acceptMatch() {
+    if (this.editingMode) {
+      this.isSelectable = this.isSelectableSearch;
+      this.closeSearchBar();
+      this.setSelected(this.searchMatches[0]);
+    } else this.exitSearchMode();
+  }
 
-  acceptMatches() {}
+  exitSearchMode() {
+    this.isSelectable = this.isSelectableDefault;
+    if (this.editingMode) {
+      this.closeSearchBar();
+      this.searchMatches.forEach((element) =>
+        this.turnOffSearchHighlight(element)
+      );
+      this.searchMatches = [];
+      //todo: change this to be the element selected before search mode
+      this.setSelected(this.root);
+    } else this.setSelected(this.selected);
+    this.searchMode = false;
+  }
 }
