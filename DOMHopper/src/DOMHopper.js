@@ -10,9 +10,10 @@ import {
   isSemantic,
   isTextNode,
   isElement,
-  makeP,
+  makeSpan,
   removeNode,
   getChildrenWithClass,
+  getChildWithClass,
 } from "./helpers.js";
 import {
   ORANGE_OUTLINE_COLOR,
@@ -221,19 +222,32 @@ export default class DOMHopper {
   }
 
   markNonSelectable(node) {
-    node.setAttribute("noHop", "");
+    node.setAttribute(PROHIBIT_SELECTION, "");
   }
   attachRegisterMarker(node, id) {
+    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
+    var noteHolder;
+    if (!hasNoteHolder) {
+      noteHolder = makeSpan("", node);
+      noteHolder.setAttribute("class", "noteHolder");
+      this.markNonSelectable(noteHolder);
+    } else {
+      noteHolder = getChildWithClass(node, "noteHolder");
+    }
     var registerNumber = id[1];
-    var stickyNote = makeP(registerNumber, node);
+    var stickyNote = makeSpan(registerNumber, noteHolder);
     stickyNote.setAttribute("class", "registerNote");
     this.markNonSelectable(stickyNote);
   }
   detachRegisterMarker(node, id) {
     var registerNumber = id[1];
-    var markerToDetach = getChildrenWithClass(node, "registerNote").filter(
-      (child) => child.innerText == registerNumber
-    )[0];
+    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
+    if (!hasNoteHolder) return;
+    var noteHolder = getChildWithClass(node, "noteHolder");
+    var markerToDetach = getChildrenWithClass(
+      noteHolder,
+      "registerNote"
+    ).filter((child) => child.innerText == registerNumber)[0];
     removeNode(markerToDetach);
   }
 

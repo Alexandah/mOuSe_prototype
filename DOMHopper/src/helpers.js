@@ -52,6 +52,12 @@ export function makeP(text, parent = document.body) {
   return addNode(p, parent);
 }
 
+export function makeSpan(text, parent = document.body) {
+  var p = document.createElement("span");
+  p.appendChild(document.createTextNode(text));
+  return addNode(p, parent);
+}
+
 export function makeInput(type, name, parent = document.body) {
   var input = document.createElement("input");
   input.setAttribute("type", type);
