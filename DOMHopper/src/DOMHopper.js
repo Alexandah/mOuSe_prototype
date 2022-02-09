@@ -9,11 +9,16 @@ import {
   getScreenPos,
   isSemantic,
   isTextNode,
+  isElement,
   makeP,
   removeNode,
   getChildrenWithClass,
 } from "./helpers.js";
-import { ORANGE_OUTLINE_COLOR, GREEN_OUTLINE_COLOR } from "./constants.js";
+import {
+  ORANGE_OUTLINE_COLOR,
+  GREEN_OUTLINE_COLOR,
+  PROHIBIT_SELECTION,
+} from "./constants.js";
 
 const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
 const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
@@ -42,6 +47,8 @@ export default class DOMHopper {
   }
 
   isSelectable(node) {
+    if (isElement(node))
+      if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
     if (isSemantic(node)) return true;
     if (node.hasChildNodes()) {
       var qualifyingChildren = Array.from(node.childNodes).filter(
@@ -213,10 +220,14 @@ export default class DOMHopper {
     }
   }
 
+  markNonSelectable(node) {
+    node.setAttribute("noHop", "");
+  }
   attachRegisterMarker(node, id) {
     var registerNumber = id[1];
     var stickyNote = makeP(registerNumber, node);
     stickyNote.setAttribute("class", "registerNote");
+    this.markNonSelectable(stickyNote);
   }
   detachRegisterMarker(node, id) {
     var registerNumber = id[1];
