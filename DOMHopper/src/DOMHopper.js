@@ -70,6 +70,14 @@ export default class DOMHopper {
     return this.searchMatches.includes(node);
   }
 
+  isSelectableLeap(node) {
+    if (isElement(node))
+      if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
+    if (isSemantic(node.parentNode)) return false;
+    if (isSemantic(node)) return true;
+    return false;
+  }
+
   distanceFromRoot(node) {
     if (node === undefined) return 0;
     if (node === this.root) return 0;
@@ -355,6 +363,7 @@ export default class DOMHopper {
   //LEAP MODE
   enterLeapMode() {
     this.leapMode = true;
+    this.isSelectable = this.isSelectableLeap;
     this.assignKeyCombosToSelectableElements();
   }
   makeKeyCombo() {
@@ -365,19 +374,28 @@ export default class DOMHopper {
   }
   assignKeyCombosToSelectableElements() {
     this.keyCombos = {};
+    var stickyNotesMade = 0;
     this.traverseSelectableNodesSubtree(this.root, (element) => {
       do {
         var keycombo = this.makeKeyCombo();
+        // console.log("made key combo: ", keycombo);
       } while (keycombo in this.keyCombos);
-      this.keyCombos[keycombo] = element;
+      // var keycombo = this.makeKeyCombo();
+      console.log("made key combo: ", keycombo);
+      this.keyCombos[keycombo] = new Stickynote(element, keycombo);
+      stickyNotesMade++;
+      console.log(stickyNotesMade);
+      // console.log("WTF?");
     });
     return this.keyCombos;
   }
   leapToElementWithKeyCombo(keycombo) {
-    this.setSelected(this.keyCombos[keycombo]);
+    this.setSelected(this.keyCombos[keycombo].stuckOn);
     this.exitLeapMode();
   }
   exitLeapMode() {
+    this.isSelectable = this.isSelectableDefault;
+    Object.values(this.keyCombos).forEach((stickynote) => stickynote.unstick());
     this.leapMode = false;
   }
 }

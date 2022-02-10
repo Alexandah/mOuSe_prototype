@@ -19,7 +19,7 @@ export default class Stickynote {
     } else this.noteHolder = getChildWithClass(element, "noteHolder");
     this.note = makeSpan(text, this.noteHolder);
     this.note.setAttribute("class", this.noteClass);
-    this.noteHolder.setAttribute(PROHIBIT_SELECTION, "");
+    this.note.setAttribute(PROHIBIT_SELECTION, "");
   }
 
   unstick() {

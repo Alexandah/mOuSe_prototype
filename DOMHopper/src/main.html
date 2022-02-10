@@ -239,7 +239,8 @@
 
       //debug
       controls.defWord([DEFAULT_MODE, DEBUG], () => {
-        domHopper.openSearchBar();
+        if (domHopper.leapMode) domHopper.exitLeapMode();
+        else domHopper.enterLeapMode();
       });
 
       //EDITOR MODE
