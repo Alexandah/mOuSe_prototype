@@ -23,6 +23,7 @@ import {
   PROHIBIT_SELECTION,
   ALPHABET,
 } from "./constants.js";
+import Stickynote from "./Stickynote.js";
 
 const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
 const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
@@ -235,47 +236,17 @@ export default class DOMHopper {
     }
   }
 
-  markNonSelectable(node) {
-    node.setAttribute(PROHIBIT_SELECTION, "");
-  }
-  attachRegisterMarker(node, id) {
-    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
-    var noteHolder;
-    if (!hasNoteHolder) {
-      noteHolder = makeSpan("", node);
-      noteHolder.setAttribute("class", "noteHolder");
-      this.markNonSelectable(noteHolder);
-    } else {
-      noteHolder = getChildWithClass(node, "noteHolder");
-    }
-    var registerNumber = id[1];
-    var stickyNote = makeSpan(registerNumber, noteHolder);
-    stickyNote.setAttribute("class", "registerNote");
-    this.markNonSelectable(stickyNote);
-  }
-  detachRegisterMarker(node, id) {
-    var registerNumber = id[1];
-    var hasNoteHolder = getChildrenWithClass(node, "noteHolder").length > 0;
-    if (!hasNoteHolder) return;
-    var noteHolder = getChildWithClass(node, "noteHolder");
-    var markerToDetach = getChildrenWithClass(
-      noteHolder,
-      "registerNote"
-    ).filter((child) => child.innerText == registerNumber)[0];
-    removeNode(markerToDetach);
-  }
-
+  //REGISTER MANAGER
   copySelectedToRegister(id) {
     if (id in this.registers) {
-      if (this.registers[id] != null)
-        this.detachRegisterMarker(this.registers[id], id);
-      this.registers[id] = this.selected;
-      this.attachRegisterMarker(this.selected, id);
+      if (this.registers[id] != null) this.registers[id].unstick();
+      var registerNumber = id[1];
+      this.registers[id] = new Stickynote(this.selected, registerNumber);
     }
   }
   jumpToElementInRegister(id) {
     if (!(id in this.registers)) return;
-    var element = this.registers[id];
+    var element = this.registers[id].stuckOn;
     if (element === undefined) return;
     this.selectedDOMLvl = this.distanceFromRoot(element);
     this.setSelected(element);

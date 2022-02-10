@@ -4,6 +4,7 @@ import {
   makeSpan,
   removeNode,
 } from "./helpers.js";
+import { PROHIBIT_SELECTION } from "./constants.js";
 
 export default class Stickynote {
   constructor(element, text, noteClass = "registerNote") {
