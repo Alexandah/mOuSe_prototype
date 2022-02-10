@@ -194,3 +194,7 @@ export function makeSemanticDOMTree(root) {
 export function isTextNode(node) {
   return node.nodeType == 3;
 }
+
+export function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}

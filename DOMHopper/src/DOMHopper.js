@@ -15,11 +15,13 @@ import {
   removeNode,
   getChildrenWithClass,
   getChildWithClass,
+  getRandomInt,
 } from "./helpers.js";
 import {
   ORANGE_OUTLINE_COLOR,
   GREEN_OUTLINE_COLOR,
   PROHIBIT_SELECTION,
+  ALPHABET,
 } from "./constants.js";
 
 const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
@@ -377,5 +379,34 @@ export default class DOMHopper {
       this.setSelected(this.root);
     } else this.setSelected(this.selected);
     this.searchMode = false;
+  }
+
+  //LEAP MODE
+  enterLeapMode() {
+    this.leapMode = true;
+    this.assignKeyCombosToSelectableElements();
+  }
+  makeKeyCombo() {
+    return (
+      ALPHABET[getRandomInt(ALPHABET.length)] +
+      ALPHABET[getRandomInt(ALPHABET.length)]
+    );
+  }
+  assignKeyCombosToSelectableElements() {
+    this.keyCombos = {};
+    this.traverseSelectableNodesSubtree(this.root, (element) => {
+      do {
+        var keycombo = this.makeKeyCombo();
+      } while (keycombo in this.keyCombos);
+      this.keyCombos[keycombo] = element;
+    });
+    return this.keyCombos;
+  }
+  leapToElementWithKeyCombo(keycombo) {
+    this.setSelected(this.keyCombos[keycombo]);
+    this.exitLeapMode();
+  }
+  exitLeapMode() {
+    this.leapMode = false;
   }
 }

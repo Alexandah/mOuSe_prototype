@@ -3,6 +3,34 @@ export const BLACK_OUTLINE_COLOR = "#000000";
 export const GREEN_OUTLINE_COLOR = "#0FFF50";
 export const STICKY_NOTE_BACKGROUND_COLOR = "#EDD88C";
 export const PROHIBIT_SELECTION = "noHop";
+export const ALPHABET = [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z",
+];
 export const SEMANTIC_NODES = {
   BODY: "<body>",
   H1: "<h1>",
