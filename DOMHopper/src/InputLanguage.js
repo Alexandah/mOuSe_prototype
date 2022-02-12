@@ -6,19 +6,20 @@ class Word {
   }
 
   is(tokenSequence) {
+    var isEqual = true;
     if (!this.orderMatters) {
       tokenSequence.forEach((t) => {
         let isInWord = this.tokens.indexOf(t) != -1;
-        if (!isInWord) return false;
+        if (!isInWord) isEqual = false;
       });
     } else {
       if (tokenSequence.length != this.tokens.length) return false;
       tokenSequence.forEach((t, i) => {
         let isInPlace = this.tokens[i] == t;
-        if (!isInPlace) return false;
+        if (!isInPlace) isEqual = false;
       });
     }
-    return true;
+    return isEqual;
   }
 }
 

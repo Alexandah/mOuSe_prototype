@@ -1,52 +1,105 @@
 import {
   getTag,
-  getElementChildren,
-  hasElementChildren,
-  excludeScripts,
-  getScreenPos,
   isEditable,
   isLink,
-  getOriginalPosition,
   leftClick,
   rightClick,
   ctrlLeftClick,
+  traverseDOMSubtree,
+  getScreenPos,
+  isSemantic,
+  isTextNode,
+  isElement,
+  makeSpan,
+  makeInput,
+  removeNode,
+  getChildrenWithClass,
+  getChildWithClass,
+  getRandomInt,
 } from "./helpers.js";
-import { ORANGE_OUTLINE_COLOR } from "./constants.js";
+import {
+  ORANGE_OUTLINE_COLOR,
+  GREEN_OUTLINE_COLOR,
+  PROHIBIT_SELECTION,
+  ALPHABET,
+} from "./constants.js";
+import Stickynote from "./Stickynote.js";
+
+const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
+const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
 
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
-    this.traverseDOMSubtree(this.root, (node) => {
-      getOriginalPosition(node);
-    });
     this.selected = this.root;
-    this.selected.oldBorder = this.selected.style.border;
-    this.selected.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
+    this.selected.style.outline = SELECTED_BORDER;
     this.selectedDOMLvl = 0;
     this.editingMode = false;
+    this.searchMode = false;
+    this.searchMatches = [];
+    this.registers = {
+      r0: null,
+      r1: null,
+      r2: null,
+      r3: null,
+      r4: null,
+      r5: null,
+      r6: null,
+      r7: null,
+      r8: null,
+      r9: null,
+    };
+    this.isSelectable = this.isSelectableDefault;
   }
 
-  distanceFromRoot(element) {
-    if (element === undefined) return 0;
-    if (element === this.root) return 0;
-    else return 1 + this.distanceFromRoot(element.parentElement);
-  }
-
-  traverseDOMSubtree(node, func) {
-    func(node);
-    if (hasElementChildren(node)) {
-      excludeScripts(getElementChildren(node)).forEach((child) => {
-        this.traverseDOMSubtree(child, func);
-      });
+  isSelectableDefault(node) {
+    if (node === null) return false;
+    if (isElement(node))
+      if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
+    if (isSemantic(node)) return true;
+    if (node.hasChildNodes()) {
+      var qualifyingChildren = Array.from(node.childNodes).filter(
+        (node) => isSemantic(node) || isTextNode(node)
+      );
+      var hasQualifyingChildren = qualifyingChildren.length > 0;
+      return hasQualifyingChildren;
     }
+    return false;
+  }
+
+  isSelectableSearch(node) {
+    return this.searchMatches.includes(node);
+  }
+
+  isSelectableLeap(node) {
+    if (isElement(node))
+      if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
+    if (isSemantic(node.parentNode)) return false;
+    if (isSemantic(node)) return true;
+    return false;
+  }
+
+  distanceFromRoot(node) {
+    if (node === null) return 0;
+    if (node === undefined) return 0;
+    if (node === this.root) return 0;
+    else {
+      var x = this.isSelectable(node) ? 1 : 0;
+      return x + this.distanceFromRoot(node.parentNode);
+    }
+  }
+
+  traverseSelectableNodesSubtree(node, func) {
+    traverseDOMSubtree(node, func, this.isSelectable);
   }
 
   getDOMLvlElements(lvl) {
     var selectedDOMLvlElements = [];
     const grabIfOnSelectedDOMLvl = (node) => {
+      if (node === null) return;
       if (this.distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
     };
-    this.traverseDOMSubtree(this.root, grabIfOnSelectedDOMLvl);
+    this.traverseSelectableNodesSubtree(this.root, grabIfOnSelectedDOMLvl);
     return selectedDOMLvlElements;
   }
 
@@ -56,12 +109,19 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
-    if (element !== this.selected) element.oldBorder = element.style.border;
+    if (element == null) return;
+    if (element == undefined) return;
+    if (element.style.outline == SEARCH_HIGHLIGHT_BORDER)
+      element.oldOutline = SEARCH_HIGHLIGHT_BORDER;
+    else element.oldOutline = 0;
     if (this.selected != null)
-      this.selected.style.border = this.selected.oldBorder;
-    element.style.border = "9px solid " + ORANGE_OUTLINE_COLOR;
+      if ("oldOutline" in this.selected)
+        this.selected.style.outline = this.selected.oldOutline;
+      else this.selected.style.outline = 0;
+    element.style.outline = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
+    console.log(this.selected);
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -69,12 +129,8 @@ export default class DOMHopper {
     var closestDistance = Infinity;
     elements.forEach((element) => {
       var distance =
-        Math.abs(
-          getOriginalPosition(element).x - getOriginalPosition(this.selected).x
-        ) +
-        Math.abs(
-          getOriginalPosition(element).y - getOriginalPosition(this.selected).y
-        );
+        Math.abs(getScreenPos(element).x - getScreenPos(this.selected).x) +
+        Math.abs(getScreenPos(element).y - getScreenPos(this.selected).y);
       if (distance < closestDistance) {
         closest = element;
         closestDistance = distance;
@@ -89,58 +145,52 @@ export default class DOMHopper {
     if (this.selected != null) {
       var elementsInDir = this.getSelectedDOMLvlElements().filter(dirFunc);
       var jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-
-      // var foundNewDestination = jumpTo !== this.selected;
-      // var nowhereElseToJump = false;
-      // var r = 1;
-      // while (!nowhereElseToJump && !foundNewDestination) {
-      //   var lvlBelow = this.selectedDOMLvl + r;
-      //   var elementsInLvlBelow = this.getDOMLvlElements(lvlBelow);
-      //   var hasElementsInLvlBelow = elementsInLvlBelow.length > 0;
-      //   if (hasElementsInLvlBelow) {
-      //     elementsInDir = elementsInLvlBelow.filter(dirFunc);
-      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-      //     foundNewDestination = jumpTo !== this.selected;
-      //   }
-
-      //   var lvlAbove = this.selectedDOMLvl - r;
-      //   var elementsInLvlAbove = this.getDOMLvlElements(lvlAbove);
-      //   var hasElementsInLvlAbove = elementsInLvlAbove.length > 0;
-      //   if (hasElementsInLvlAbove) {
-      //     elementsInDir = elementsInLvlAbove.filter(dirFunc);
-      //     jumpTo = this.getElementClosestToSelectedFrom(elementsInDir);
-      //     foundNewDestination = jumpTo !== this.selected;
-      //   }
-
-      //   nowhereElseToJump = !hasElementsInLvlAbove && !hasElementsInLvlBelow;
-      //   r++;
-      // }
       this.setSelected(jumpTo);
     }
   }
   jumpUp() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).y < getOriginalPosition(this.selected).y
+      (element) => getScreenPos(element).y < getScreenPos(this.selected).y
     );
   }
   jumpDown() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).y > getOriginalPosition(this.selected).y
+      (element) => getScreenPos(element).y > getScreenPos(this.selected).y
     );
   }
   jumpLeft() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).x < getOriginalPosition(this.selected).x
+      (element) => getScreenPos(element).x < getScreenPos(this.selected).x
     );
   }
   jumpRight() {
     this.jump(
-      (element) =>
-        getOriginalPosition(element).x > getOriginalPosition(this.selected).x
+      (element) => getScreenPos(element).x > getScreenPos(this.selected).x
     );
+  }
+
+  getNearestSelectableAncestor(node) {
+    if (node == null) return null;
+    var parent = node.parentNode;
+    if (this.isSelectable(parent)) return parent;
+    return this.getNearestSelectableAncestor(parent);
+  }
+  getNearestSelectableDescendant(node) {
+    if (node == null) return null;
+    if (node.hasChildNodes()) {
+      var children = node.childNodes;
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        if (this.isSelectable(child)) return child;
+      }
+
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        var selectableDescendant = this.getNearestSelectableDescendant(child);
+        if (selectableDescendant != null) return selectableDescendant;
+      }
+    }
+    return null;
   }
 
   moveSelectionLvlUp() {
@@ -148,7 +198,7 @@ export default class DOMHopper {
     let atTop = this.selected === this.root;
     if (atTop) return;
     this.selectedDOMLvl--;
-    var parent = this.selected.parentElement;
+    var parent = this.getNearestSelectableAncestor(this.selected);
     this.setSelected(parent);
   }
   moveSelectionLvlDown() {
@@ -157,11 +207,22 @@ export default class DOMHopper {
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
-    var selectedHasChild = hasElementChildren(this.selected);
-    var descendant = selectedHasChild
-      ? getElementChildren(this.selected)[0]
-      : nextDOMLvlElements[this.selectedDOMLvl][0];
+    var nearestSelectableDesecendant = this.getNearestSelectableDescendant(
+      this.selected
+    );
+    var selectableDescendantIsOnCorrectDOMLvl =
+      this.distanceFromRoot(nearestSelectableDesecendant) ==
+      this.selectedDOMLvl;
+    var descendant = selectableDescendantIsOnCorrectDOMLvl
+      ? nearestSelectableDesecendant
+      : nextDOMLvlElements[this.selectedDOMLvl];
     this.setSelected(descendant);
+  }
+
+  goToRootSelectionLvl() {
+    if (this.editingMode) return;
+    this.selectedDOMLvl = 0;
+    this.setSelected(this.root);
   }
 
   enterEditingMode() {
@@ -187,5 +248,160 @@ export default class DOMHopper {
         ctrlLeftClick(this.selected);
       } else rightClick(this.selected);
     }
+  }
+
+  //REGISTER MANAGER
+  copySelectedToRegister(id) {
+    if (id in this.registers) {
+      if (this.registers[id] != null) this.registers[id].unstick();
+      var registerNumber = id[1];
+      this.registers[id] = new Stickynote(this.selected, registerNumber);
+    }
+  }
+  jumpToElementInRegister(id) {
+    if (!(id in this.registers)) return;
+    var element = this.registers[id].stuckOn;
+    if (element === undefined) return;
+    this.selectedDOMLvl = this.distanceFromRoot(element);
+    this.setSelected(element);
+  }
+
+  //SEARCH MODE
+  enterSearchMode() {
+    this.searchMode = true;
+    this.openSearchBar();
+  }
+
+  openSearchBar() {
+    var searchBar = makeInput("text", "Search Bar");
+    searchBar.setAttribute("class", "searchBar");
+    searchBar.addEventListener("input", (event) => this.searchDOM(event.data));
+    this.setSelected(searchBar);
+    this.enterEditingMode();
+  }
+  closeSearchBar() {
+    this.exitEditingMode();
+    var searchBar = getClass("searchBar")[0];
+    removeNode(searchBar);
+  }
+
+  turnOnSearchHighlight(element) {
+    if (element === this.selected) return;
+    element.style.oldOutline = element.style.outline;
+    element.style.outline = SEARCH_HIGHLIGHT_BORDER;
+  }
+  turnOffSearchHighlight(element) {
+    if (element === this.selected) return;
+    element.style.outline = element.style.oldOutline;
+  }
+
+  parseSearchString(string) {
+    var terms = string.split(" ");
+    const isElementString = (term) =>
+      term[0] == "<" && term[term.length - 1] == ">";
+    return terms.map((x) => {
+      if (isElementString(x))
+        return {
+          text: x.substring(1, x.length - 1).toUpperCase(),
+          isElementTerm: true,
+        };
+      else return { text: x, isElementTerm: false };
+    });
+  }
+
+  searchDOM(string) {
+    var searchTerms = this.parseSearchString(string);
+    this.searchMatches.forEach((element) =>
+      this.turnOffSearchHighlight(element)
+    );
+    this.searchMatches = [];
+
+    this.traverseSelectableNodesSubtree(this.root, (element) => {
+      var matchesAllTerms = true;
+      for (var i = 0; i < searchTerms.length; i++) {
+        var searchTerm = searchTerms[i];
+        if (searchTerm.isElementTerm) {
+          var isDesiredElement = element.nodeName == searchTerm.text;
+          if (!isDesiredElement) {
+            matchesAllTerms = false;
+            break;
+          }
+        } else {
+          //check for text matches
+          var hasTerm = element.innerText.indexOf(searchTerm.text) != -1;
+          if (!hasTerm) {
+            matchesAllTerms = false;
+            break;
+          }
+        }
+      }
+      if (matchesAllTerms) this.searchMatches.push(element);
+    });
+
+    this.searchMatches.forEach((element) =>
+      this.turnOnSearchHighlight(element)
+    );
+    return this.searchMatches;
+  }
+
+  acceptMatch() {
+    if (this.editingMode) {
+      this.isSelectable = this.isSelectableSearch;
+      this.closeSearchBar();
+      this.setSelected(this.searchMatches[0]);
+    } else this.exitSearchMode();
+  }
+
+  exitSearchMode() {
+    this.isSelectable = this.isSelectableDefault;
+    if (this.editingMode) {
+      this.closeSearchBar();
+      this.searchMatches.forEach((element) =>
+        this.turnOffSearchHighlight(element)
+      );
+      this.searchMatches = [];
+      //todo: change this to be the element selected before search mode
+      this.setSelected(this.root);
+    } else this.setSelected(this.selected);
+    this.searchMode = false;
+  }
+
+  //LEAP MODE
+  enterLeapMode() {
+    this.leapMode = true;
+    this.isSelectable = this.isSelectableLeap;
+    this.assignKeyCombosToSelectableElements();
+  }
+  makeKeyCombo() {
+    return (
+      ALPHABET[getRandomInt(ALPHABET.length)] +
+      ALPHABET[getRandomInt(ALPHABET.length)]
+    );
+  }
+  assignKeyCombosToSelectableElements() {
+    this.keyCombos = {};
+    var stickyNotesMade = 0;
+    this.traverseSelectableNodesSubtree(this.root, (element) => {
+      do {
+        var keycombo = this.makeKeyCombo();
+        // console.log("made key combo: ", keycombo);
+      } while (keycombo in this.keyCombos);
+      // var keycombo = this.makeKeyCombo();
+      console.log("made key combo: ", keycombo);
+      this.keyCombos[keycombo] = new Stickynote(element, keycombo);
+      stickyNotesMade++;
+      console.log(stickyNotesMade);
+      // console.log("WTF?");
+    });
+    return this.keyCombos;
+  }
+  leapToElementWithKeyCombo(keycombo) {
+    this.setSelected(this.keyCombos[keycombo].stuckOn);
+    this.exitLeapMode();
+  }
+  exitLeapMode() {
+    this.isSelectable = this.isSelectableDefault;
+    Object.values(this.keyCombos).forEach((stickynote) => stickynote.unstick());
+    this.leapMode = false;
   }
 }
