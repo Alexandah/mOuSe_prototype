@@ -74,6 +74,7 @@ export function getScreenPos(element) {
 }
 
 export function isElement(node) {
+  if (node === null) return false;
   return node.nodeType == 1;
 }
 
@@ -154,6 +155,7 @@ export function traverseElementsInDOMSubtree(node, func) {
 }
 
 export function isSemantic(node) {
+  if (node === null) return false;
   return node.nodeName in SEMANTIC_NODES;
 }
 

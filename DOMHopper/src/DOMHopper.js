@@ -53,6 +53,7 @@ export default class DOMHopper {
   }
 
   isSelectableDefault(node) {
+    if (node === null) return false;
     if (isElement(node))
       if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
     if (isSemantic(node)) return true;
@@ -79,6 +80,7 @@ export default class DOMHopper {
   }
 
   distanceFromRoot(node) {
+    if (node === null) return 0;
     if (node === undefined) return 0;
     if (node === this.root) return 0;
     else {
@@ -94,6 +96,7 @@ export default class DOMHopper {
   getDOMLvlElements(lvl) {
     var selectedDOMLvlElements = [];
     const grabIfOnSelectedDOMLvl = (node) => {
+      if (node === null) return;
       if (this.distanceFromRoot(node) == lvl) selectedDOMLvlElements.push(node);
     };
     this.traverseSelectableNodesSubtree(this.root, grabIfOnSelectedDOMLvl);
@@ -106,6 +109,8 @@ export default class DOMHopper {
   }
 
   setSelected(element) {
+    if (element == null) return;
+    if (element == undefined) return;
     if (element.style.outline == SEARCH_HIGHLIGHT_BORDER)
       element.oldOutline = SEARCH_HIGHLIGHT_BORDER;
     else element.oldOutline = 0;
@@ -116,6 +121,7 @@ export default class DOMHopper {
     element.style.outline = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
+    console.log(this.selected);
   }
 
   getElementClosestToSelectedFrom(elements) {
@@ -209,7 +215,7 @@ export default class DOMHopper {
       this.selectedDOMLvl;
     var descendant = selectableDescendantIsOnCorrectDOMLvl
       ? nearestSelectableDesecendant
-      : nextDOMLvlElements[this.selectedDOMLvl][0];
+      : nextDOMLvlElements[this.selectedDOMLvl];
     this.setSelected(descendant);
   }
 
