@@ -13,6 +13,10 @@ export default class Stickynote {
     var hasNoteHolder =
       getChildrenWithClass(this.stuckOn, "noteHolder").length > 0;
     if (!hasNoteHolder) {
+      var elementIsPositioned = this.stuckOn.style.position != "";
+      console.log("stuckOn style.position", this.stuckOn.style.position);
+      console.log("elementIsPositioned", elementIsPositioned);
+      if (!elementIsPositioned) this.addInertPositioning(this.stuckOn);
       this.noteHolder = makeSpan("", this.stuckOn);
       this.noteHolder.setAttribute("class", "noteHolder");
       this.noteHolder.setAttribute(PROHIBIT_SELECTION, "");
@@ -22,10 +26,24 @@ export default class Stickynote {
     this.note.setAttribute(PROHIBIT_SELECTION, "");
   }
 
+  addInertPositioning(element) {
+    element.style.position = "relative";
+    element.style.top = "0";
+    element.style.left = "0";
+  }
+  removeInertPositioning(element) {
+    element.style.position = "";
+    element.style.top = "";
+    element.style.left = "";
+  }
+
   unstick() {
     removeNode(this.note);
     var hasNotesLeft =
       getChildrenWithClass(this.noteHolder, this.noteClass).length > 0;
-    if (!hasNotesLeft) removeNode(this.noteHolder);
+    if (!hasNotesLeft) {
+      removeNode(this.noteHolder);
+      this.removeInertPositioning(this.stuckOn);
+    }
   }
 }
