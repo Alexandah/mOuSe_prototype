@@ -39,6 +39,15 @@
         text-align: center;
         background-color: #c7dcff;
       }
+      .webSearchBar {
+        border: 3px solid black;
+        z-index: 99;
+        width: 99%;
+        height: 50%;
+        opacity: 0.9;
+        text-align: center;
+        background-color: #c7dcff;
+      }
     </style>
   </head>
   <body>
@@ -58,7 +67,12 @@
       </ul>
       <div class="window">
         <form method="get" action="https://www.google.com/search">
-          <input type="text" name="q" placeholder="Search Google" />
+          <input
+            class="webSearchBar"
+            type="text"
+            name="q"
+            placeholder="Search Google"
+          />
         </form>
       </div>
     </div>
