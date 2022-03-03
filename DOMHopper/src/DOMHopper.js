@@ -10,12 +10,10 @@ import {
   isSemantic,
   isTextNode,
   isElement,
-  makeSpan,
   makeInput,
   removeNode,
-  getChildrenWithClass,
-  getChildWithClass,
   getRandomInt,
+  getDOMPath,
 } from "./helpers.js";
 import {
   ORANGE_OUTLINE_COLOR,
@@ -34,6 +32,7 @@ export default class DOMHopper {
     this.selected = this.root;
     this.selected.style.outline = SELECTED_BORDER;
     this.selectedDOMLvl = 0;
+    this.lastSelectedChildOfElement = {};
     this.editingMode = false;
     this.searchMode = false;
     this.searchMatches = [];
@@ -108,6 +107,25 @@ export default class DOMHopper {
     return this.getDOMLvlElements(this.selectedDOMLvl);
   }
 
+  //Makes impossible that qualitatively identical elements
+  //will be mistaken as numerically identical
+  //NOTE: This may act up when handling some dynamic webpages
+  getUniqueElementKey(element) {
+    const uniqueKey = getDOMPath(element);
+    return uniqueKey;
+  }
+  markElementAsLastSelectedChild(element) {
+    const proxyParent = this.getNearestSelectableAncestor(element);
+    const uniqueKey = this.getUniqueElementKey(proxyParent);
+    this.lastSelectedChildOfElement[uniqueKey] = element;
+  }
+  getLastSelectedChild(parent) {
+    const uniqueKey = this.getUniqueElementKey(parent);
+    if (uniqueKey in this.lastSelectedChildOfElement)
+      return this.lastSelectedChildOfElement[uniqueKey];
+    else return null;
+  }
+
   setSelected(element) {
     if (element == null) return;
     if (element == undefined) return;
@@ -121,6 +139,7 @@ export default class DOMHopper {
     element.style.outline = SELECTED_BORDER;
     this.selected = element;
     this.selected.scrollIntoView();
+    this.markElementAsLastSelectedChild(this.selected);
     console.log(this.selected);
   }
 
@@ -198,8 +217,8 @@ export default class DOMHopper {
     let atTop = this.selected === this.root;
     if (atTop) return;
     this.selectedDOMLvl--;
-    var parent = this.getNearestSelectableAncestor(this.selected);
-    this.setSelected(parent);
+    var toSelect = this.getNearestSelectableAncestor(this.selected);
+    this.setSelected(toSelect);
   }
   moveSelectionLvlDown() {
     if (this.editingMode) return;
@@ -207,16 +226,23 @@ export default class DOMHopper {
     var hasNextDOMLvl = nextDOMLvlElements.length > 0;
     if (!hasNextDOMLvl) return;
     this.selectedDOMLvl++;
-    var nearestSelectableDesecendant = this.getNearestSelectableDescendant(
-      this.selected
-    );
-    var selectableDescendantIsOnCorrectDOMLvl =
-      this.distanceFromRoot(nearestSelectableDesecendant) ==
-      this.selectedDOMLvl;
-    var descendant = selectableDescendantIsOnCorrectDOMLvl
-      ? nearestSelectableDesecendant
-      : nextDOMLvlElements[this.selectedDOMLvl];
-    this.setSelected(descendant);
+
+    var toSelect;
+    const lastSelectedChild = this.getLastSelectedChild(this.selected);
+    if (lastSelectedChild != null) toSelect = lastSelectedChild;
+    else {
+      var nearestSelectableDescendant = this.getNearestSelectableDescendant(
+        this.selected
+      );
+      var selectableDescendantIsOnCorrectDOMLvl =
+        this.distanceFromRoot(nearestSelectableDescendant) ==
+        this.selectedDOMLvl;
+      var descendant = selectableDescendantIsOnCorrectDOMLvl
+        ? nearestSelectableDescendant
+        : nextDOMLvlElements[this.selectedDOMLvl];
+      toSelect = descendant;
+    }
+    this.setSelected(toSelect);
   }
 
   goToRootSelectionLvl() {

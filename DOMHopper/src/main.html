@@ -238,11 +238,11 @@
       );
       controls.defWord([DEFAULT_MODE, FIND], () => domHopper.enterSearchMode());
 
-      //debug
-      controls.defWord([DEFAULT_MODE, DEBUG], () => {
-        if (domHopper.leapMode) domHopper.exitLeapMode();
-        else domHopper.enterLeapMode();
-      });
+      //DEBUG CONTROL AREA
+      // controls.defWord([DEFAULT_MODE, DEBUG], () => {
+      //   if (domHopper.leapMode) domHopper.exitLeapMode();
+      //   else domHopper.enterLeapMode();
+      // });
 
       //EDITOR MODE
       controls.defWord([EDITING_MODE, ESC], () => domHopper.exitEditingMode());
@@ -313,7 +313,6 @@
       //MAIN INPUT LISTENER
       document.addEventListener("keydown", (event) => {
         var controlLanguageTokens = parseRawInputIntoControlLanguage();
-        console.log("control tokens :", controlLanguageTokens);
         modeSettingsControls.read(controlLanguageTokens, [event]);
         controls.read(controlLanguageTokens);
       });
