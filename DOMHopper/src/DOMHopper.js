@@ -26,6 +26,8 @@ import Stickynote from "./Stickynote.js";
 const SELECTED_BORDER = "9px solid " + ORANGE_OUTLINE_COLOR;
 const SEARCH_HIGHLIGHT_BORDER = "1px solid " + GREEN_OUTLINE_COLOR;
 
+const CAN_LVL_DESCEND_TO_NON_DESCENDANTS = false;
+
 export default class DOMHopper {
   constructor() {
     this.root = getTag("body");
@@ -239,7 +241,9 @@ export default class DOMHopper {
         this.selectedDOMLvl;
       var descendant = selectableDescendantIsOnCorrectDOMLvl
         ? nearestSelectableDescendant
-        : nextDOMLvlElements[this.selectedDOMLvl];
+        : CAN_LVL_DESCEND_TO_NON_DESCENDANTS
+        ? nextDOMLvlElements[this.selectedDOMLvl]
+        : null;
       toSelect = descendant;
     }
     this.setSelected(toSelect);
