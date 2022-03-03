@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>DOM Hopper Demo</title>
+    <style>
+      .window {
+        border: 1px solid black;
+        padding: 10px;
+        margin: 10px;
+        position: relative;
+      }
+      .block {
+        border: 1px solid black;
+        display: inline-block;
+        position: relative;
+      }
+      .registerNote {
+        border: 1px solid black;
+        background-color: #edd88c;
+        padding: 7px;
+        opacity: 0.5;
+        display: inline-block;
+      }
+      .noteHolder {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .searchBar {
+        border: 3px solid black;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 99;
+        width: 50%;
+        height: 5%;
+        opacity: 0.9;
+        text-align: center;
+        background-color: #c7dcff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <p>Hello! Here are the controls:</p>
+      <ul>
+        <li>j ~ down</li>
+        <li>k ~ up</li>
+        <li>h ~ left</li>
+        <li>l ~ right</li>
+        <li>Shift ~ go up in DOMHierarchy by 1</li>
+        <li>Ctrl ~ go down in DOMHierarchy by 1</li>
+        <li position="relative">
+          Enter ~ right click (also opens links in new tabs)
+        </li>
+        <li>Spacebar ~ left click</li>
+      </ul>
+      <div class="window">
+        <p>I'm a pretty sexy div</p>
+      </div>
+      <div class="window">
+        <p>as am I ;)</p>
+      </div>
+      <div class="window">
+        <p>But I am the dankest div!</p>
+      </div>
+    </div>
+    <div class="window">
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block alertOnLeftClick">
+        <p>Click me!</p>
+      </div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block"><p>I am a block</p></div>
+      <div class="block alertOnRightClick">
+        <p>Rite clix 0wnLi!</p>
+      </div>
+      <div class="block"><p>I am a block</p></div>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am also a window!</p>
+      <input type="text" />
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+      <a href="http://www.erandalex.com">Our creator's website</a>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+    <div class="window">
+      <p>I am a window!</p>
+    </div>
+
+    <script type="module" src="./extension_main.js"></script>
+  </body>
+</html>
