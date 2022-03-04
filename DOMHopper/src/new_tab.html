@@ -26,19 +26,6 @@
         top: 0;
         left: 0;
       }
-      .searchBar {
-        border: 3px solid black;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 99;
-        width: 50%;
-        height: 5%;
-        opacity: 0.9;
-        text-align: center;
-        background-color: #c7dcff;
-      }
       .webSearchBar {
         border: 3px solid black;
         z-index: 99;
@@ -51,93 +38,80 @@
     </style>
   </head>
   <body>
-    <div class="window">
-      <p>Hello! Here are the controls:</p>
-      <ul>
-        <li>j ~ down</li>
-        <li>k ~ up</li>
-        <li>h ~ left</li>
-        <li>l ~ right</li>
-        <li>Shift ~ go up in DOMHierarchy by 1</li>
-        <li>Ctrl ~ go down in DOMHierarchy by 1</li>
-        <li position="relative">
-          Enter ~ right click (also opens links in new tabs)
+    <h1 noHop>New Tab</h1>
+    <div>
+      <h2 noHop>Search</h2>
+      <form noHop method="get" action="https://www.google.com/search">
+        <input
+          class="webSearchBar"
+          type="text"
+          name="q"
+          placeholder="Search Google"
+        />
+      </form>
+    </div>
+    <div>
+      <h2 noHop>Bookmarks</h2>
+      <ul noHop>
+        <li noHop>
+          <h3 noHop>Money</h3>
+          <ul>
+            <li noHop>
+              <a
+                href="https://secure.bankofamerica.com/myaccounts/signin/signIn.go?returnSiteIndicator=GAIEC&langPref=en-us&request_locale=en-us&capturemode=N&newuser=false&bcIP=F"
+                >Bank of America</a
+              >
+            </li>
+            <li noHop>
+              <a
+                href="https://home.personalcapital.com/page/login/app#/dashboard"
+                >Personal Capital</a
+              >
+            </li>
+          </ul>
         </li>
-        <li>Spacebar ~ left click</li>
+        <li noHop>
+          <h3 noHop>Blogs</h3>
+          <ul>
+            <li noHop>
+              <a href="https://dwarkeshpatel.com/">Dwarkesh Patel</a>
+            </li>
+            <li noHop>
+              <a href="https://astralcodexten.substack.com/"
+                >Astral Codex Ten</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li noHop>
+          <h3 noHop>Knowledge</h3>
+          <ul>
+            <li noHop>
+              <a href="https://www.nand2tetris.org/course">nand2tetris</a>
+            </li>
+            <li noHop>
+              <a href="https://scholar.google.com/">Google Scholar</a>
+            </li>
+          </ul>
+        </li>
+        <li noHop>
+          <h3 noHop>Tools</h3>
+          <ul noHop>
+            <li noHop>
+              <h3 noHop>Dev Tools</h3>
+              <ul>
+                <li noHop>
+                  <a href="https://github.com/login">Github</a>
+                </li>
+                <li noHop>
+                  <a href="https://gitlab.com">Gitlab</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
       </ul>
-      <div class="window">
-        <form method="get" action="https://www.google.com/search">
-          <input
-            class="webSearchBar"
-            type="text"
-            name="q"
-            placeholder="Search Google"
-          />
-        </form>
-      </div>
     </div>
-    <div class="window">
-      <div class="block"><p>I am a block</p></div>
-      <div class="block"><p>I am a block</p></div>
-      <div class="block"><p>I am a block</p></div>
-      <div class="block alertOnLeftClick">
-        <p>Click me!</p>
-      </div>
-      <div class="block"><p>I am a block</p></div>
-      <div class="block"><p>I am a block</p></div>
-      <div class="block alertOnRightClick">
-        <p>Rite clix 0wnLi!</p>
-      </div>
-      <div class="block"><p>I am a block</p></div>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am also a window!</p>
-      <input type="text" />
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-      <a href="http://www.erandalex.com">Our creator's website</a>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-    <div class="window">
-      <p>I am a window!</p>
-    </div>
-
     <script type="module" src="./extension_main.js"></script>
   </body>
 </html>

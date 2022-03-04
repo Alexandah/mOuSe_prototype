@@ -142,6 +142,10 @@ export function ctrlLeftClick(element) {
   element.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
 }
 
+export function pressFunctionKey(n) {
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "F" + n }));
+}
+
 export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
   if (filterChildrenBy(node)) func(node);
   if (node.hasChildNodes())

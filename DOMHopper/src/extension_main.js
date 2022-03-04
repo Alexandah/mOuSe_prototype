@@ -1,6 +1,7 @@
 import DOMHopper from "./DOMHopper.js";
 import InputLanguage from "./InputLanguage.js";
 import KeyboardParser from "./KeyboardParser.js";
+import { pressFunctionKey } from "./helpers.js";
 
 //First, parse to add onClick functions via classes
 //we must do this bc chrome hates inline js execution
