@@ -142,6 +142,10 @@ export function ctrlLeftClick(element) {
   element.dispatchEvent(new MouseEvent("click", { ctrlKey: true }));
 }
 
+export function pressFunctionKey(n) {
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "F" + n }));
+}
+
 export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
   if (filterChildrenBy(node)) func(node);
   if (node.hasChildNodes())
@@ -152,6 +156,31 @@ export function traverseDOMSubtree(node, func, filterChildrenBy = (x) => true) {
 
 export function traverseElementsInDOMSubtree(node, func) {
   traverseDOMSubtree(node, func, (x) => isElement(x));
+}
+
+export function traversePathToRoot(node, func) {
+  if (node == null) return;
+  func(node);
+  traversePathToRoot(node.parentNode, func);
+}
+
+export function getDOMPath(node) {
+  const getChildIndex = (n) => {
+    const parent = n.parentNode;
+    if (parent == null) return -1;
+    const whichChild = Array.from(parent.childNodes).indexOf(n);
+    return whichChild;
+  };
+  const makeNodePathString = (n) => {
+    return "/" + n.nodeName + "[" + getChildIndex(n) + "]";
+  };
+
+  var path = "";
+  const addNodeToPath = (n) => {
+    path = makeNodePathString(n) + path;
+  };
+  traversePathToRoot(node, addNodeToPath);
+  return path;
 }
 
 export function isSemantic(node) {

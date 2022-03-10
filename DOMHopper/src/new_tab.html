@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>DOM Hopper Demo</title>
+    <style>
+      .window {
+        border: 1px solid black;
+        padding: 10px;
+        margin: 10px;
+        position: relative;
+      }
+      .block {
+        border: 1px solid black;
+        display: inline-block;
+        position: relative;
+      }
+      .registerNote {
+        border: 1px solid black;
+        background-color: #edd88c;
+        padding: 7px;
+        opacity: 0.5;
+        display: inline-block;
+      }
+      .noteHolder {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .webSearchBar {
+        border: 3px solid black;
+        width: 99%;
+        height: 50%;
+        opacity: 0.9;
+        text-align: center;
+        background-color: #c7dcff;
+      }
+      .centeredPage {
+        border: 2px solid black;
+        padding: 5px;
+        width: 50%;
+        height: 80%;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .col {
+        display: inline-block;
+        position: relative;
+      }
+      .row {
+        display: flex;
+      }
+      .noDot {
+        list-style-type: none;
+      }
+    </style>
+  </head>
+
+  <body class="centeredPage" tabindex="1">
+    <h1 noHop>New Tab</h1>
+    <div>
+      <h2 noHop>Search</h2>
+      <form noHop method="get" action="https://www.google.com/search">
+        <input
+          class="webSearchBar"
+          type="text"
+          name="q"
+          placeholder="Search Google"
+          tabindex="-1"
+        />
+      </form>
+    </div>
+    <div>
+      <h2 noHop>Bookmarks</h2>
+      <ul class="row" noHop>
+        <li class="col" noHop>
+          <h3 noHop>Executive</h3>
+          <ul>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://www.notion.so/Main-57d6cbb1b3414f4ab5732b15bf9f565c"
+                noHop
+              />
+              <a
+                href="https://www.notion.so/Main-57d6cbb1b3414f4ab5732b15bf9f565c"
+                >Notion</a
+              >
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://calendar.google.com/calendar"
+                noHop
+              />
+              <a href="https://calendar.google.com/calendar">Calendar</a>
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://mail.google.com/mail/u/0/#inbox"
+                noHop
+              />
+              <a href="https://mail.google.com/mail/u/0/#inbox">Gmail</a>
+            </li>
+          </ul>
+        </li>
+        <li class="col" noHop>
+          <h3 noHop>Money</h3>
+          <ul>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://secure.bankofamerica.com/myaccounts/signin/signIn.go?returnSiteIndicator=GAIEC&langPref=en-us&request_locale=en-us&capturemode=N&newuser=false&bcIP=F"
+                noHop
+              />
+              <a
+                href="https://secure.bankofamerica.com/myaccounts/signin/signIn.go?returnSiteIndicator=GAIEC&langPref=en-us&request_locale=en-us&capturemode=N&newuser=false&bcIP=F"
+                >Bank of America</a
+              >
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://home.personalcapital.com/page/login/app#/dashboard"
+                noHop
+              />
+              <a
+                href="https://home.personalcapital.com/page/login/app#/dashboard"
+                >Personal Capital</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li class="col" noHop>
+          <h3 noHop>Blogs</h3>
+          <ul>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://dwarkeshpatel.com/"
+                noHop
+              />
+              <a href="https://dwarkeshpatel.com/">Dwarkesh Patel</a>
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://astralcodexten.substack.com/"
+                noHop
+              />
+              <a href="https://astralcodexten.substack.com/"
+                >Astral Codex Ten</a
+              >
+            </li>
+          </ul>
+        </li>
+        <li class="col" noHop>
+          <h3 noHop>Knowledge</h3>
+          <ul>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://www.nand2tetris.org/course"
+                noHop
+              />
+              <a href="https://www.nand2tetris.org/course">nand2tetris</a>
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://scholar.google.com/"
+                noHop
+              />
+              <a href="https://scholar.google.com/">Google Scholar</a>
+            </li>
+          </ul>
+        </li>
+        <li class="col" noHop>
+          <h3 noHop>Dev Tools</h3>
+          <ul>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://github.com/login"
+                noHop
+              />
+              <a href="https://github.com/login">Github</a>
+            </li>
+            <li noHop>
+              <img
+                height="16"
+                width="16"
+                src="http://www.google.com/s2/favicons?domain=https://gitlab.com"
+                noHop
+              />
+              <a href="https://gitlab.com">Gitlab</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h2 noHop>To Do</h2>
+      <ol>
+        <li>Smoke weed</li>
+        <li>???</li>
+        <li>Profit</li>
+      </ol>
+    </div>
+    <div>
+      <h2 noHop>Miscellaneous</h2>
+      <ul>
+        <li>
+          Incredibly similar browser extension to DOMHopper called
+          <a href="https://github.com/brookhong/Surfingkeys">Surfingkeys</a>.
+          Much more slavish to vim.
+        </li>
+        <li>
+          A
+          <a
+            href="https://jdhao.github.io/2019/05/11/nvim_text_input_browser/#:~:text=Surfingkeys%20can%20open%20up%20a,mode)%20to%20write%20the%20text."
+            >collection</a
+          >
+          collection of similar browser extensions.
+        </li>
+      </ul>
+    </div>
+    <script type="module" src="./extension_main.js"></script>
+  </body>
+</html>
