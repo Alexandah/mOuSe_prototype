@@ -33,6 +33,8 @@ export default class DOMHopper {
   constructor() {
     const customRoot = get("domHopperRoot");
     const hasCustomRoot = customRoot != null;
+    console.log("hasCustomRoot: ", hasCustomRoot);
+    console.log("customroot: ", customRoot);
     this.root = hasCustomRoot ? customRoot : getTag("body");
     this.selected = this.root;
     this.selected.style.outline = SELECTED_BORDER;
@@ -56,6 +58,8 @@ export default class DOMHopper {
     this.isSelectable = this.isSelectableDefault;
     const customStart = get("domHopperStart");
     const hasCustomStart = customStart != null;
+    console.log("hasCustomStart: ", hasCustomStart);
+    console.log("customstart: ", customStart);
     if (hasCustomStart) this.setSelected(customStart);
   }
 
