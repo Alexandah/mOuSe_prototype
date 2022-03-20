@@ -3,6 +3,7 @@ export const BLACK_OUTLINE_COLOR = "#000000";
 export const GREEN_OUTLINE_COLOR = "#0FFF50";
 export const STICKY_NOTE_BACKGROUND_COLOR = "#EDD88C";
 export const PROHIBIT_SELECTION = "noHop";
+export const FORCE_ALLOW_SELECTION = "yesHop";
 export const ALPHABET = [
   "a",
   "b",

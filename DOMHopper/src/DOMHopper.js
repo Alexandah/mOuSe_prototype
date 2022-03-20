@@ -20,6 +20,7 @@ import {
   ORANGE_OUTLINE_COLOR,
   GREEN_OUTLINE_COLOR,
   PROHIBIT_SELECTION,
+  FORCE_ALLOW_SELECTION,
   ALPHABET,
 } from "./constants.js";
 import Stickynote from "./Stickynote.js";
@@ -65,12 +66,16 @@ export default class DOMHopper {
 
   isSelectableDefault(node) {
     if (node === null) return false;
+    if (node.hasAttribute(FORCE_ALLOW_SELECTION)) return true;
     if (isElement(node))
       if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
     if (isSemantic(node)) return true;
     if (node.hasChildNodes()) {
       var qualifyingChildren = Array.from(node.childNodes).filter(
-        (node) => isSemantic(node) || isTextNode(node)
+        (node) =>
+          node.hasAttribute(FORCE_ALLOW_SELECTION) ||
+          isSemantic(node) ||
+          isTextNode(node)
       );
       var hasQualifyingChildren = qualifyingChildren.length > 0;
       return hasQualifyingChildren;
