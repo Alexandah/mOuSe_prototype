@@ -10,6 +10,7 @@ import {
   isSemantic,
   isTextNode,
   isElement,
+  isScript,
   makeInput,
   removeNode,
   getRandomInt,
@@ -66,14 +67,16 @@ export default class DOMHopper {
 
   isSelectableDefault(node) {
     if (node === null) return false;
-    if (node.hasAttribute(FORCE_ALLOW_SELECTION)) return true;
-    if (isElement(node))
+    if (isScript(node)) return false;
+    if (isElement(node)) {
+      if (node.hasAttribute(FORCE_ALLOW_SELECTION)) return true;
       if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
+    }
     if (isSemantic(node)) return true;
     if (node.hasChildNodes()) {
       var qualifyingChildren = Array.from(node.childNodes).filter(
         (node) =>
-          node.hasAttribute(FORCE_ALLOW_SELECTION) ||
+          (isElement(node) && node.hasAttribute(FORCE_ALLOW_SELECTION)) ||
           isSemantic(node) ||
           isTextNode(node)
       );
