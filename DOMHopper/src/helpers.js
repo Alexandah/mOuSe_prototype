@@ -118,11 +118,6 @@ export function isLink(element) {
   return false;
 }
 
-export function isScript(node) {
-  if (node.nodeName == "SCRIPT") return true;
-  return false;
-}
-
 export function getOriginalPosition(element) {
   if (!element.hasOwnProperty("originalPosition"))
     element.originalPosition = getScreenPos(element);
