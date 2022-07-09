@@ -421,6 +421,11 @@ export default class DOMHopper {
     this.assignKeyCombosToSelectableElements();
   }
   makeKeyCombo() {
+    //the randomness of this is a weakness.
+    //1) it may produce difficult to press key combos
+    //2) it isn't predictable across leap mode entrances
+    //solution: make this deterministically produce intuitive keycombos
+    //based upon position in the DOM/page
     return (
       ALPHABET[getRandomInt(ALPHABET.length)] +
       ALPHABET[getRandomInt(ALPHABET.length)]
