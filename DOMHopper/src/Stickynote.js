@@ -1,7 +1,10 @@
+// import "https://cdn.jsdelivr.net/gh/Alexandah/Alxndr.js@Release7.9.2022/src/Alxndr.js";
+// import "https://cdn.jsdelivr.net/gh/Alexandah/Alxndr.js@b6a09ac4d0f1074841e17b5624f5344752a4be77/src/Alxndr.js";
+import "https://cdn.jsdelivr.net/gh/Alexandah/Alxndr.js@v1.0/src/Alxndr.js";
 import {
+  addNode,
   getChildrenWithClass,
   getChildWithClass,
-  makeSpan,
   removeNode,
 } from "./helpers.js";
 import { PROHIBIT_SELECTION } from "./constants.js";
@@ -12,12 +15,20 @@ function canHaveSpanChildren(element) {
 }
 
 export default class Stickynote {
-  constructor(element, text, noteClass = "registerNote") {
-    this.stuckOn = element;
+  constructor(node, text, noteClass = "registerNote") {
+    this.stuckOn = node;
     this.noteClass = noteClass;
     this.parentOfNoteHolder = canHaveSpanChildren(this.stuckOn)
       ? this.stuckOn
       : this.stuckOn.parentElement;
+
+    this.note = span(
+      {
+        class: this.noteClass,
+        noHop: "",
+      },
+      text
+    );
 
     var hasNoteHolder =
       getChildrenWithClass(this.parentOfNoteHolder, "noteHolder").length > 0;
@@ -26,28 +37,33 @@ export default class Stickynote {
         this.parentOfNoteHolder.style.position != "";
       if (!parentOfNoteHolderIsPositioned)
         this.addInertPositioning(this.parentOfNoteHolder);
-      this.noteHolder = makeSpan("", this.parentOfNoteHolder);
-      this.noteHolder.setAttribute("class", "noteHolder");
-      this.noteHolder.setAttribute(PROHIBIT_SELECTION, "");
+
       const mustManuallyRepositionNoteHolder =
         this.parentOfNoteHolder !== this.stuckOn;
-      if (mustManuallyRepositionNoteHolder)
-        this.noteHolder.setAttribute(
-          "style",
-          "position: absolute; top: " +
-            this.stuckOn.offsetTop +
-            "px; left: " +
-            this.stuckOn.offsetLeft +
-            "px;"
-        );
-    } else
+      const style = !mustManuallyRepositionNoteHolder
+        ? { position: "absolute", top: 0, left: 0 }
+        : {
+            position: "absolute",
+            top: this.stuckOn.offsetTop + "px",
+            left: this.stuckOn.offsetLeft + "px",
+          };
+
+      this.noteHolder = span(
+        {
+          class: "noteHolder",
+          style: style,
+          noHop: "",
+        },
+        [this.note]
+      );
+      addNode(this.noteHolder, this.stuckOn);
+    } else {
       this.noteHolder = getChildWithClass(
         this.parentOfNoteHolder,
         "noteHolder"
       );
-    this.note = makeSpan(text, this.noteHolder);
-    this.note.setAttribute("class", this.noteClass);
-    this.note.setAttribute(PROHIBIT_SELECTION, "");
+      addNode(this.note, this.noteHolder);
+    }
   }
 
   addInertPositioning(element) {

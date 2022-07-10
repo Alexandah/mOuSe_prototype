@@ -2,33 +2,33 @@ import DOMHopper from "./DOMHopper.js";
 import InputLanguage from "./InputLanguage.js";
 import KeyboardParser from "./KeyboardParser.js";
 
-var domHopper = new DOMHopper();
+window.domHopper = new DOMHopper();
 
-const UP = "k";
-const DOWN = "j";
-const LEFT = "h";
-const RIGHT = "l";
-const PRIMARY_CLICK = " ";
-const SECONDARY_CLICK = "enter";
-const INC = "shift";
-const DEC = "control";
-const ESC = "escape";
-const COPY = "c";
-const FIND = "f";
-const R0 = "0";
-const R1 = "1";
-const R2 = "2";
-const R3 = "3";
-const R4 = "4";
-const R5 = "5";
-const R6 = "6";
-const R7 = "7";
-const R8 = "8";
-const R9 = "9";
-const REGISTERS = [R0, R1, R2, R3, R4, R5, R6, R7, R8, R9];
-const DEBUG = "alt";
+window.UP = "k";
+window.DOWN = "j";
+window.LEFT = "h";
+window.RIGHT = "l";
+window.PRIMARY_CLICK = " ";
+window.SECONDARY_CLICK = "enter";
+window.INC = "shift";
+window.DEC = "control";
+window.ESC = "escape";
+window.COPY = "c";
+window.FIND = "f";
+window.R0 = "0";
+window.R1 = "1";
+window.R2 = "2";
+window.R3 = "3";
+window.R4 = "4";
+window.R5 = "5";
+window.R6 = "6";
+window.R7 = "7";
+window.R8 = "8";
+window.R9 = "9";
+window.REGISTERS = [R0, R1, R2, R3, R4, R5, R6, R7, R8, R9];
+window.DEBUG = "alt";
 
-const TOKEN_ALLOWS_DUPLICATES = {
+window.TOKEN_ALLOWS_DUPLICATES = {
   [UP]: false,
   [DOWN]: false,
   [LEFT]: false,
@@ -53,12 +53,12 @@ const TOKEN_ALLOWS_DUPLICATES = {
   [DEBUG]: false,
 };
 
-const DEFAULT_MODE = "DefaultMode";
-const EDITING_MODE = "EditingMode";
-const SEARCH_MODE = "SearchMode";
+window.DEFAULT_MODE = "DefaultMode";
+window.EDITING_MODE = "EditingMode";
+window.SEARCH_MODE = "SearchMode";
 
 //CONTROL SETTINGS
-var controls = new InputLanguage([
+window.controls = new InputLanguage([
   UP,
   DOWN,
   LEFT,
@@ -129,7 +129,7 @@ controls.defWord([SEARCH_MODE, INC], () => domHopper.moveSelectionLvlUp());
 controls.defWord([SEARCH_MODE, DEC], () => domHopper.moveSelectionLvlDown());
 
 //MODE SETTINGS
-var modeSettingsControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE]);
+window.modeSettingsControls = new InputLanguage([DEFAULT_MODE, EDITING_MODE]);
 modeSettingsControls.defWord([DEFAULT_MODE], (event) => {
   event.preventDefault();
 });
@@ -140,7 +140,7 @@ modeSettingsControls.defWord([SEARCH_MODE], (event) => {
 modeSettingsControls.defWord([SEARCH_MODE, EDITING_MODE], () => {});
 
 //MAIN INPUT PARSER
-var keyboardParser = new KeyboardParser();
+window.keyboardParser = new KeyboardParser();
 function parseRawInputIntoControlLanguage() {
   var editingMode = domHopper.editingMode ? EDITING_MODE : false;
   var searchMode = domHopper.searchMode ? SEARCH_MODE : false;

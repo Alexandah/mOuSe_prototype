@@ -16,7 +16,7 @@ export function getChildrenWithClass(node, className) {
     );
     return matchingChildren;
   }
-  return null;
+  return [];
 }
 
 export function getChildWithClass(node, className) {
