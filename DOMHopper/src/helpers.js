@@ -1,4 +1,8 @@
-import { SEMANTIC_NODES } from "./constants.js";
+import {
+  SEMANTIC_NODES,
+  INTERACTION_NODES,
+  USER_INTERACTION_EVENTS,
+} from "./constants.js";
 
 export function get(id) {
   return document.getElementById(id);
@@ -186,6 +190,18 @@ export function getDOMPath(node) {
 export function isSemantic(node) {
   if (node === null) return false;
   return node.nodeName in SEMANTIC_NODES;
+}
+
+export function getEventListeners(node) {}
+
+export function isInteractable(node) {
+  if (node === null) return false;
+  const isDefaultInteractableNode = node.nodeName in INTERACTION_NODES;
+  const hasUserInteractionEventListener =
+    Object.keys(getEventListeners(node)).filter(
+      (k) => k in USER_INTERACTION_EVENTS
+    ).length > 0;
+  return isDefaultInteractableNode || hasUserInteractionEventListener;
 }
 
 export function makeSemanticDOMTree(root) {

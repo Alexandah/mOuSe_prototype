@@ -11,6 +11,7 @@ import {
   isTextNode,
   isElement,
   isScript,
+  isInteractable,
   makeInput,
   removeNode,
   getRandomInt,
@@ -22,6 +23,7 @@ import {
   GREEN_OUTLINE_COLOR,
   PROHIBIT_SELECTION,
   FORCE_ALLOW_SELECTION,
+  SEMANTIC_NODES,
   ALPHABET,
 } from "./constants.js";
 import Stickynote from "./Stickynote.js";
@@ -57,7 +59,8 @@ export default class DOMHopper {
       r8: null,
       r9: null,
     };
-    this.isSelectable = this.isSelectableDefault;
+    // this.isSelectable = this.isSelectableDefault;
+    this.isSelectable = this.isSelectableInteraction;
     const customStart = get("domHopperStart");
     const hasCustomStart = customStart != null;
     console.log("hasCustomStart: ", hasCustomStart);
@@ -87,15 +90,29 @@ export default class DOMHopper {
   }
 
   isSelectableSearch(node) {
+    if (node === null) return false;
     return this.searchMatches.includes(node);
   }
 
   isSelectableLeap(node) {
+    if (node === null) return false;
     if (isElement(node))
       if (node.hasAttribute(PROHIBIT_SELECTION)) return false;
     if (isSemantic(node.parentNode)) return false;
     if (isSemantic(node)) return true;
     return false;
+  }
+
+  isSelectableInteraction(node) {
+    if (node === null) return false;
+    if (isInteractable(node)) return true;
+    if (node.nodeName in [SEMANTIC_NODES.BODY, SEMANTIC_NODES.MAIN])
+      return true;
+    const hasInteractableChild =
+      node.hasChildNodes() &&
+      Array.from(node.childNodes).filter((node) => isInteractable(node))
+        .length > 0;
+    return hasInteractableChild;
   }
 
   distanceFromRoot(node) {
